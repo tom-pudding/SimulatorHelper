@@ -52,7 +52,7 @@ struct StatusBarCommandService: Sendable {
 
         return [
             "simctl", "status_bar", simulatorID, "override",
-            "--time", configuration.timeString.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
+            "--time", configuration.resolvedTimeOverrideValue,
             "--dataNetwork", configuration.dataNetwork.rawValue,
             "--wifiMode", configuration.wifiMode.rawValue,
             "--wifiBars", String(configuration.wifiBars),
@@ -64,7 +64,8 @@ struct StatusBarCommandService: Sendable {
     }
 
     private func validate(configuration: StatusBarConfiguration, capabilities: StatusBarCapabilities) throws {
-        guard !configuration.timeString.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty else {
+        guard configuration.timeOverrideMode == .dateAndTime ||
+                !configuration.timeString.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty else {
             throw StatusBarCommandError.validationFailed("Time is required.")
         }
 

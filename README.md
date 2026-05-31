@@ -16,7 +16,9 @@ Implemented so far:
 - simulator sidebar with single selection
 - manual simulator refresh
 - status bar capability detection from the active `simctl`
-- validated MVP status bar form and apply/clear actions
+- validated status bar form and apply/clear actions
+- time-only and date-plus-time overrides for iPhone and iPad screenshot workflows
+- runtime-driven network type options, including advanced LTE and 5G variants when supported
 - screenshot folder persistence with a default Desktop destination
 - screenshot filename generation and capture command wiring
 - unit tests for environment, inventory, status bar, screenshot, and settings services
@@ -25,13 +27,12 @@ Known MVP limitations:
 - detects booted simulators only
 - single simulator selection only
 - no carrier name editing
-- no advanced network variants beyond the curated MVP set
 - no open-save-folder action yet
 - no presets or batch capture yet
+- date visibility still depends on the simulator device family and the current app layout; iPhone usually shows only the time
 
 Next version candidates:
 - carrier name editing
-- advanced network variants
 - open save folder
 - persisted last-used status bar values
 - optional auto-refresh

@@ -12,6 +12,12 @@ Completed:
 Not started:
 - Version 1.1 backlog
 
+Latest completed follow-up:
+- added `Date + Time` status bar override mode for iPad-relevant screenshot cases
+- kept `Time Only` mode for standard iPhone screenshot workflows
+- expanded `Network Type` to the runtime `simctl` surface, including advanced LTE and 5G labels when the installed Xcode supports them
+- clarified in the UI that `Network Type` and `Wi-Fi Mode` control different parts of the status bar
+
 ## What Phase 1 Added
 
 - Swift package-backed macOS SwiftUI app scaffold
@@ -64,6 +70,18 @@ Not started:
 - HANDOFF updated for future version work
 - residual MVP limitations documented
 
+## Post-MVP Status Bar Follow-up
+
+- `StatusBarConfiguration` now supports:
+  - `Time Only`
+  - `Date + Time`
+- `Date + Time` is serialized as a local ISO-like string for `simctl`
+- the status bar form now exposes every `dataNetwork` value that the current `xcrun simctl help status_bar` reports
+- tests now cover:
+  - free-form time strings
+  - local date/time override string generation
+  - advanced network values such as `5g-uwb`
+
 ## Build and Test
 
 Use:
@@ -82,12 +100,13 @@ Next recommended step:
 Start Version 1.1 work from the approved roadmap:
 
 1. add carrier name editing
-2. add advanced network variants
-3. add open-save-folder action
-4. persist last-used status bar form values
-5. add optional auto-refresh
+2. add open-save-folder action
+3. persist last-used status bar form values
+4. add optional auto-refresh
+5. manually validate status bar appearance across at least one Dynamic Island iPhone, one Home-button iPhone, and one iPad simulator
 
 ## Notes
 
 - The app currently uses a Swift package executable with a SwiftUI `App` entry point.
 - Capability detection remains aligned with the approved architecture: trust the installed toolchain at runtime instead of assuming a fixed Xcode feature matrix.
+- Manual UI verification is still recommended for how date visibility appears on iPad layouts, because `simctl` support does not guarantee the current app screen shows the date.

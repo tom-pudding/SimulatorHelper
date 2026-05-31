@@ -3,6 +3,7 @@ import SwiftUI
 struct StatusBarFormView: View {
     @Binding var configuration: StatusBarConfiguration
     let capabilities: StatusBarCapabilities
+    let hasSelectedSimulator: Bool
     let isLoadingCapabilities: Bool
     let capabilitiesErrorMessage: String?
     let isPerformingAction: Bool
@@ -32,19 +33,13 @@ struct StatusBarFormView: View {
                 } else {
                     Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 14) {
                         GridRow {
-                            label("Time")
-                            TextField("9:41", text: $configuration.timeString)
-                                .textFieldStyle(.roundedBorder)
+                            label("Date/Time")
+                            timeOverrideControls
                         }
 
                         GridRow {
                             label("Network Type")
-                            Picker("Network Type", selection: $configuration.dataNetwork) {
-                                ForEach(capabilities.availableMVPDataNetworks) { option in
-                                    Text(option.title).tag(option)
-                                }
-                            }
-                            .pickerStyle(.menu)
+                            networkTypeControls
                         }
 
                         GridRow {
@@ -108,7 +103,15 @@ struct StatusBarFormView: View {
                         Button("Clear Overrides", action: onClear)
                             .buttonStyle(.bordered)
                     }
-                    .disabled(isPerformingAction)
+                    .disabled(isPerformingAction || !hasSelectedSimulator)
+
+                    if !hasSelectedSimulator {
+                        statusMessage(
+                            message: "Edit values freely, then select a booted simulator to apply or clear overrides.",
+                            symbolName: "info.circle"
+                        )
+                        .foregroundStyle(.secondary)
+                    }
 
                     if let resultMessage {
                         statusMessage(
@@ -122,6 +125,75 @@ struct StatusBarFormView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         } label: {
             Label("Status Bar", systemImage: "switch.2")
+        }
+    }
+
+    private var timeOverrideControls: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Picker("Date/Time", selection: $configuration.timeOverrideMode) {
+                ForEach(StatusBarConfiguration.TimeOverrideMode.allCases) { option in
+                    Text(option.title).tag(option)
+                }
+            }
+            .pickerStyle(.segmented)
+            .frame(maxWidth: 280)
+
+            if configuration.timeOverrideMode == .timeOnly {
+                HStack(spacing: 12) {
+                    TextField("9:41", text: $configuration.timeString)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(minWidth: 160)
+
+                    Button("Use 9:41") {
+                        configuration.timeString = "9:41"
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(isPerformingAction)
+                }
+
+                Text("Use a simple time string for the standard iPhone-style status bar clock.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                HStack(alignment: .top, spacing: 12) {
+                    DatePicker(
+                        "Date",
+                        selection: $configuration.dateAndTimeOverride,
+                        displayedComponents: [.date]
+                    )
+
+                    DatePicker(
+                        "Time",
+                        selection: $configuration.dateAndTimeOverride,
+                        displayedComponents: [.hourAndMinute]
+                    )
+
+                    Button("Use Today 9:41") {
+                        configuration.dateAndTimeOverride = StatusBarConfiguration.defaultDateAndTimeOverride()
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(isPerformingAction)
+                }
+
+                Text("Some iPad layouts show the date next to the time. iPhone usually shows only the time.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var networkTypeControls: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Picker("Network Type", selection: $configuration.dataNetwork) {
+                ForEach(capabilities.availableDataNetworks) { option in
+                    Text(option.title).tag(option)
+                }
+            }
+            .pickerStyle(.menu)
+
+            Text("Network Type controls labels like Wi-Fi, LTE, and 5G. Wi-Fi Mode only changes the Wi-Fi icon state.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 

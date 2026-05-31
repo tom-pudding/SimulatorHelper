@@ -123,6 +123,7 @@ struct ContentView: View {
         StatusBarFormView(
             configuration: $viewModel.statusBarConfiguration,
             capabilities: viewModel.statusBarCapabilities,
+            hasSelectedSimulator: viewModel.selectedSimulator != nil,
             isLoadingCapabilities: viewModel.isLoadingStatusBarCapabilities,
             capabilitiesErrorMessage: viewModel.statusBarCapabilitiesErrorMessage,
             isPerformingAction: viewModel.isPerformingStatusBarAction,
@@ -144,7 +145,6 @@ struct ContentView: View {
                 }
             }
         )
-        .disabled(viewModel.selectedSimulator == nil || viewModel.isLoadingSimulators)
     }
 
     private var screenshotSection: some View {

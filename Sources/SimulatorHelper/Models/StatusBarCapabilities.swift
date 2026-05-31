@@ -33,8 +33,8 @@ struct StatusBarCapabilities: Equatable, Sendable {
         batteryLevelRange: 0...100
     )
 
-    var availableMVPDataNetworks: [StatusBarConfiguration.DataNetworkOption] {
-        StatusBarConfiguration.DataNetworkOption.allCases.filter { supportedDataNetworks.contains($0.rawValue) }
+    var availableDataNetworks: [StatusBarConfiguration.DataNetworkOption] {
+        supportedDataNetworks.map(StatusBarConfiguration.DataNetworkOption.init(rawValue:))
     }
 
     var availableWiFiModes: [StatusBarConfiguration.WiFiModeOption] {

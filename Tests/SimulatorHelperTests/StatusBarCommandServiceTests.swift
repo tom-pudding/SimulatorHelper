@@ -26,6 +26,51 @@ struct StatusBarCommandServiceTests {
     }
 
     @Test
+    func preservesCustomTimeStrings() throws {
+        var configuration = StatusBarConfiguration.defaultMVP
+        configuration.timeString = "10:27"
+
+        let arguments = try StatusBarCommandService().buildOverrideArguments(
+            configuration: configuration,
+            capabilities: sampleCapabilities,
+            simulatorID: sampleSimulator.udid
+        )
+
+        #expect(arguments[5] == "10:27")
+    }
+
+    @Test
+    func buildsLocalISODateAndTimeOverrideArguments() throws {
+        var configuration = StatusBarConfiguration.defaultMVP
+        configuration.timeOverrideMode = .dateAndTime
+        configuration.dateAndTimeOverride = Calendar(identifier: .gregorian).date(
+            from: DateComponents(year: 2026, month: 6, day: 1, hour: 9, minute: 41, second: 0)
+        )!
+
+        let arguments = try StatusBarCommandService().buildOverrideArguments(
+            configuration: configuration,
+            capabilities: sampleCapabilities,
+            simulatorID: sampleSimulator.udid
+        )
+
+        #expect(arguments[5] == "2026-06-01T09:41:00")
+    }
+
+    @Test
+    func acceptsAdvancedRuntimeNetworkSelections() throws {
+        var configuration = StatusBarConfiguration.defaultMVP
+        configuration.dataNetwork = .fiveGUWB
+
+        let arguments = try StatusBarCommandService().buildOverrideArguments(
+            configuration: configuration,
+            capabilities: sampleCapabilities,
+            simulatorID: sampleSimulator.udid
+        )
+
+        #expect(arguments[7] == "5g-uwb")
+    }
+
+    @Test
     func rejectsUnsupportedNetworkSelections() {
         var configuration = StatusBarConfiguration.defaultMVP
         configuration.dataNetwork = .fiveG
@@ -53,7 +98,7 @@ struct StatusBarCommandServiceTests {
 
 private let sampleCapabilities = StatusBarCapabilities(
     supportedFlags: [.time, .dataNetwork, .wifiMode, .wifiBars, .cellularMode, .cellularBars, .batteryState, .batteryLevel, .operatorName],
-    supportedDataNetworks: ["wifi", "3g", "4g", "lte", "5g"],
+    supportedDataNetworks: ["hide", "wifi", "3g", "4g", "lte", "lte-a", "lte+", "5g", "5g+", "5g-uwb", "5g-uc"],
     supportedWiFiModes: ["searching", "failed", "active"],
     supportedCellularModes: ["notSupported", "searching", "failed", "active"],
     supportedBatteryStates: ["charging", "charged", "discharging"],
