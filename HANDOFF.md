@@ -18,6 +18,7 @@ Latest completed follow-up:
 - made `Date + Time` unavailable unless an iPad simulator is selected
 - removed signal and network controls from the UI so simulator defaults remain untouched across device models
 - kept only battery level as the non-time override, with battery state derived automatically
+- added scripts to build `SimulatorHelper.app` and install it into `~/Applications` for normal Finder-based launching
 
 ## What Phase 1 Added
 
@@ -99,6 +100,12 @@ swift build
 swift test
 ```
 
+To build and install a clickable app bundle:
+
+```bash
+./scripts/install_app.sh
+```
+
 In this Codex environment, build and test commands require execution outside the default sandbox.
 
 ## Next Recommended Step
@@ -116,5 +123,7 @@ Start Version 1.1 work from the approved roadmap:
 ## Notes
 
 - The app currently uses a Swift package executable with a SwiftUI `App` entry point.
+- Normal end-user launching is now via `~/Applications/SimulatorHelper.app` after running `./scripts/install_app.sh`.
+- `Xcode` must be installed because the app shells out to `xcrun simctl`, but `Xcode.app` does not need to stay open.
 - Capability detection remains aligned with the approved architecture: trust the installed toolchain at runtime instead of assuming a fixed Xcode feature matrix.
 - Manual UI verification is still recommended for how date visibility appears on iPad layouts, because `simctl` support does not guarantee the current app screen shows the date.

@@ -18,7 +18,6 @@ private final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.regular)
 
         DispatchQueue.main.async {
-            NSRunningApplication.current.activate(options: [.activateIgnoringOtherApps])
             NSApp.activate(ignoringOtherApps: true)
             NSApp.windows.first?.makeKeyAndOrderFront(nil)
         }

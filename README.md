@@ -60,6 +60,22 @@ swift run
 
 The package can also be opened directly in Xcode.
 
+## Install As App
+
+To build a clickable macOS app bundle and install it to `~/Applications`:
+
+```bash
+./scripts/install_app.sh
+```
+
+This creates and installs:
+
+```text
+~/Applications/SimulatorHelper.app
+```
+
+After that, you can launch it by double-clicking the app icon in Finder. `Xcode` must be installed because the app uses `xcrun simctl`, but `Xcode.app` does not need to be open while you use Simulator Helper.
+
 ## Test
 
 ```bash
