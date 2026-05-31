@@ -4,7 +4,7 @@ Simulator Helper is a native macOS SwiftUI utility for configuring iOS Simulator
 
 ## Current Status
 
-Phase 2 is complete.
+Phase 3 is complete.
 
 Implemented so far:
 - macOS SwiftUI app scaffold
@@ -15,10 +15,11 @@ Implemented so far:
 - booted iPhone and iPad simulator discovery
 - simulator sidebar with single selection
 - manual simulator refresh
-- unit tests for the environment layer
+- status bar capability detection from the active `simctl`
+- validated MVP status bar form and apply/clear actions
+- unit tests for environment, inventory, and status bar services
 
 Planned next:
-- Phase 3: status bar controls and apply/clear
 - Phase 4: screenshot workflow
 
 ## Requirements

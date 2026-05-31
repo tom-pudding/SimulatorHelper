@@ -9,21 +9,35 @@ final class AppViewModel {
     var selectedSimulatorID: SimulatorDescriptor.ID?
     var isLoadingSimulators = false
     var simulatorErrorMessage: String?
+    var statusBarCapabilities = StatusBarCapabilities.empty
+    var isLoadingStatusBarCapabilities = false
+    var statusBarCapabilitiesErrorMessage: String?
+    var statusBarConfiguration = StatusBarConfiguration.defaultMVP
+    var isPerformingStatusBarAction = false
+    var statusBarResultMessage: String?
+    var statusBarResultIsError = false
 
     private let environmentService: EnvironmentService
     private let simulatorInventoryService: SimulatorInventoryService
+    private let statusBarCapabilitiesService: StatusBarCapabilitiesService
+    private let statusBarCommandService: StatusBarCommandService
 
     init(
         environmentService: EnvironmentService = EnvironmentService(),
-        simulatorInventoryService: SimulatorInventoryService = SimulatorInventoryService()
+        simulatorInventoryService: SimulatorInventoryService = SimulatorInventoryService(),
+        statusBarCapabilitiesService: StatusBarCapabilitiesService = StatusBarCapabilitiesService(),
+        statusBarCommandService: StatusBarCommandService = StatusBarCommandService()
     ) {
         self.environmentService = environmentService
         self.simulatorInventoryService = simulatorInventoryService
+        self.statusBarCapabilitiesService = statusBarCapabilitiesService
+        self.statusBarCommandService = statusBarCommandService
     }
 
     func loadInitialData() async {
         await loadEnvironmentIfNeeded()
         await loadSimulatorsIfNeeded()
+        await loadStatusBarCapabilitiesIfNeeded()
     }
 
     func loadEnvironmentIfNeeded() async {
@@ -43,6 +57,9 @@ final class AppViewModel {
         defer { isLoadingEnvironment = false }
 
         environmentStatus = await environmentService.loadStatus()
+        statusBarCapabilities = .empty
+        statusBarCapabilitiesErrorMessage = nil
+        await loadStatusBarCapabilitiesIfNeeded()
     }
 
     func loadSimulatorsIfNeeded() async {
@@ -69,6 +86,85 @@ final class AppViewModel {
             simulators = []
             selectedSimulatorID = nil
             simulatorErrorMessage = error.localizedDescription
+        }
+    }
+
+    func loadStatusBarCapabilitiesIfNeeded() async {
+        guard !isLoadingStatusBarCapabilities,
+              statusBarCapabilities == .empty,
+              statusBarCapabilitiesErrorMessage == nil else {
+            return
+        }
+
+        await loadStatusBarCapabilities()
+    }
+
+    func loadStatusBarCapabilities() async {
+        guard !isLoadingStatusBarCapabilities else {
+            return
+        }
+
+        isLoadingStatusBarCapabilities = true
+        defer { isLoadingStatusBarCapabilities = false }
+
+        do {
+            let capabilities = try await statusBarCapabilitiesService.loadCapabilities()
+            statusBarCapabilities = capabilities
+            statusBarCapabilitiesErrorMessage = capabilities.supportsMVP
+                ? nil
+                : "The active toolchain does not expose the full MVP status bar surface."
+            statusBarConfiguration.normalize(using: capabilities)
+        } catch {
+            statusBarCapabilities = .empty
+            statusBarCapabilitiesErrorMessage = error.localizedDescription
+        }
+    }
+
+    func applyStatusBarConfiguration() async {
+        guard let selectedSimulator else {
+            return
+        }
+
+        guard !isPerformingStatusBarAction else {
+            return
+        }
+
+        isPerformingStatusBarAction = true
+        defer { isPerformingStatusBarAction = false }
+
+        do {
+            try await statusBarCommandService.apply(
+                configuration: statusBarConfiguration,
+                capabilities: statusBarCapabilities,
+                to: selectedSimulator
+            )
+            statusBarResultMessage = "Applied status bar overrides to \(selectedSimulator.name)."
+            statusBarResultIsError = false
+        } catch {
+            statusBarResultMessage = error.localizedDescription
+            statusBarResultIsError = true
+        }
+    }
+
+    func clearStatusBarConfiguration() async {
+        guard let selectedSimulator else {
+            return
+        }
+
+        guard !isPerformingStatusBarAction else {
+            return
+        }
+
+        isPerformingStatusBarAction = true
+        defer { isPerformingStatusBarAction = false }
+
+        do {
+            try await statusBarCommandService.clear(on: selectedSimulator)
+            statusBarResultMessage = "Cleared status bar overrides on \(selectedSimulator.name)."
+            statusBarResultIsError = false
+        } catch {
+            statusBarResultMessage = error.localizedDescription
+            statusBarResultIsError = true
         }
     }
 

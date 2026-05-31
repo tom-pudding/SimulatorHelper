@@ -5,9 +5,9 @@
 Completed:
 - Phase 1 from `TASKS.md`
 - Phase 2 from `TASKS.md`
+- Phase 3 from `TASKS.md`
 
 Not started:
-- Phase 3 status bar controls
 - Phase 4 screenshot workflow
 - Phase 5 final verification and polish
 
@@ -34,6 +34,19 @@ Not started:
 - selected-simulator detail card in the main panel
 - simulator inventory tests using stubbed JSON
 
+## What Phase 3 Added
+
+- `StatusBarCapabilitiesService` that parses `xcrun simctl help status_bar`
+- `StatusBarCapabilities` and `StatusBarConfiguration` models
+- validated `StatusBarCommandService` for apply and clear operations
+- MVP status bar form UI for:
+  - time
+  - network type
+  - Wi-Fi mode and bars
+  - cellular mode and bars
+  - battery state and level
+- status bar capability and command tests
+
 ## Build and Test
 
 Use:
@@ -47,14 +60,13 @@ In this Codex environment, build and test commands require execution outside the
 
 ## Next Recommended Step
 
-Start Phase 3 from `TASKS.md`:
+Start Phase 4 from `TASKS.md`:
 
-1. parse `xcrun simctl help status_bar`
-2. build the capability model
-3. build the MVP form only
-4. validate ranges and required values
-5. implement `Apply Settings`
-6. implement `Clear Overrides`
+1. add folder picker flow
+2. persist the chosen folder
+3. generate the screenshot filename
+4. implement `simctl io screenshot`
+5. show success and failure messages clearly
 
 ## Notes
 

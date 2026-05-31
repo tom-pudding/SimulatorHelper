@@ -65,6 +65,7 @@ struct ContentView: View {
                         isLoading: viewModel.isLoadingEnvironment
                     )
                     selectedSimulatorCard
+                    statusBarSection
                     toolchainDetails
                     nextSteps
                 }
@@ -83,7 +84,7 @@ struct ContentView: View {
             Text("Simulator Helper")
                 .font(.system(size: 32, weight: .semibold, design: .rounded))
 
-            Text("Phase 2 adds booted simulator discovery and selection while keeping the screenshot and status bar controls staged for later phases.")
+            Text("Phase 3 adds validated status bar controls and command execution for the currently selected booted simulator.")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -100,11 +101,6 @@ struct ContentView: View {
                     detailLine(label: "Runtime", value: simulator.runtimeName)
                     detailLine(label: "State", value: simulator.state)
                     detailLine(label: "UDID", value: simulator.udid)
-
-                    Text("Status bar controls and screenshot actions will attach to this selected simulator in the next phases.")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
                 } else if viewModel.isLoadingSimulators {
                     ProgressView("Looking for booted simulators…")
                         .progressViewStyle(.linear)
@@ -120,6 +116,34 @@ struct ContentView: View {
         } label: {
             Label("Selected Simulator", systemImage: "sidebar.right")
         }
+    }
+
+    private var statusBarSection: some View {
+        StatusBarFormView(
+            configuration: $viewModel.statusBarConfiguration,
+            capabilities: viewModel.statusBarCapabilities,
+            isLoadingCapabilities: viewModel.isLoadingStatusBarCapabilities,
+            capabilitiesErrorMessage: viewModel.statusBarCapabilitiesErrorMessage,
+            isPerformingAction: viewModel.isPerformingStatusBarAction,
+            resultMessage: viewModel.statusBarResultMessage,
+            resultIsError: viewModel.statusBarResultIsError,
+            onReloadCapabilities: {
+                Task {
+                    await viewModel.loadStatusBarCapabilities()
+                }
+            },
+            onApply: {
+                Task {
+                    await viewModel.applyStatusBarConfiguration()
+                }
+            },
+            onClear: {
+                Task {
+                    await viewModel.clearStatusBarConfiguration()
+                }
+            }
+        )
+        .disabled(viewModel.selectedSimulator == nil || viewModel.isLoadingSimulators)
     }
 
     private var toolchainDetails: some View {
@@ -143,7 +167,6 @@ struct ContentView: View {
     private var nextSteps: some View {
         GroupBox {
             VStack(alignment: .leading, spacing: 12) {
-                Label("Phase 3 will add the MVP status bar controls and apply/clear actions.", systemImage: "switch.2")
                 Label("Phase 4 will add screenshot folder selection and capture.", systemImage: "camera")
                 Label("Phase 5 will finalize validation, polish, and handoff readiness.", systemImage: "checkmark.seal")
             }
