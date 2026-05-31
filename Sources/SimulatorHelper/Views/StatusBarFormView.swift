@@ -28,7 +28,7 @@ struct StatusBarFormView: View {
                     Button("Retry Capability Detection", action: onReloadCapabilities)
                 } else if !capabilities.supportsMVP {
                     statusMessage(
-                        message: "The active toolchain is missing one or more MVP status bar options.",
+                        message: "The active toolchain is missing one or more required status bar options.",
                         symbolName: "exclamationmark.triangle"
                     )
                     .foregroundStyle(.orange)
@@ -40,64 +40,16 @@ struct StatusBarFormView: View {
                         }
 
                         GridRow {
-                            label("Network Type")
-                            networkTypeControls
-                        }
-
-                        GridRow {
-                            label("Wi-Fi Mode")
-                            Picker("Wi-Fi Mode", selection: $configuration.wifiMode) {
-                                ForEach(capabilities.availableWiFiModes) { option in
-                                    Text(option.title).tag(option)
-                                }
-                            }
-                            .pickerStyle(.menu)
-                        }
-
-                        GridRow {
-                            label("Wi-Fi Bars")
-                            Stepper(value: $configuration.wifiBars, in: capabilities.wifiBarsRange) {
-                                Text("\(configuration.wifiBars)")
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                        }
-
-                        GridRow {
-                            label("Cellular Mode")
-                            Picker("Cellular Mode", selection: $configuration.cellularMode) {
-                                ForEach(capabilities.availableCellularModes) { option in
-                                    Text(option.title).tag(option)
-                                }
-                            }
-                            .pickerStyle(.menu)
-                        }
-
-                        GridRow {
-                            label("Cellular Bars")
-                            Stepper(value: $configuration.cellularBars, in: capabilities.cellularBarsRange) {
-                                Text("\(configuration.cellularBars)")
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                        }
-
-                        GridRow {
-                            label("Battery State")
-                            Picker("Battery State", selection: $configuration.batteryState) {
-                                ForEach(capabilities.availableBatteryStates) { option in
-                                    Text(option.title).tag(option)
-                                }
-                            }
-                            .pickerStyle(.menu)
-                        }
-
-                        GridRow {
-                            label("Battery Level")
-                            Stepper(value: $configuration.batteryLevel, in: capabilities.batteryLevelRange) {
-                                Text("\(configuration.batteryLevel)")
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
+                            label("Battery")
+                            batteryLevelControls
                         }
                     }
+
+                    statusMessage(
+                        message: "Signal and network indicators stay on the simulator defaults to avoid model-specific screenshot issues.",
+                        symbolName: "antenna.radiowaves.left.and.right"
+                    )
+                    .foregroundStyle(.secondary)
 
                     HStack(spacing: 12) {
                         Button("Apply Settings", action: onApply)
@@ -191,24 +143,16 @@ struct StatusBarFormView: View {
         }
     }
 
-    private var networkTypeControls: some View {
+    private var batteryLevelControls: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Picker("Network Type", selection: $configuration.dataNetwork) {
-                ForEach(capabilities.availableDataNetworks) { option in
-                    Text(option.title).tag(option)
-                }
+            Stepper(value: $configuration.batteryLevel, in: capabilities.batteryLevelRange) {
+                Text("\(configuration.batteryLevel)%")
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .pickerStyle(.menu)
 
-            Text("Network Type controls labels like Wi-Fi, LTE, and 5G. Wi-Fi Mode only changes the Wi-Fi icon state.")
+            Text("100% uses the charged battery icon. Lower values use the standard discharging battery icon.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-
-            if selectedProductFamily == .iPhone {
-                Text("Simulator output still varies by iPhone model. Newer iPhone layouts can keep the Wi-Fi glyph even when a cellular network override is active.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
         }
     }
 

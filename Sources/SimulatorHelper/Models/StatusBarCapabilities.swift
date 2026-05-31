@@ -33,30 +33,9 @@ struct StatusBarCapabilities: Equatable, Sendable {
         batteryLevelRange: 0...100
     )
 
-    var availableDataNetworks: [StatusBarConfiguration.DataNetworkOption] {
-        supportedDataNetworks.map(StatusBarConfiguration.DataNetworkOption.init(rawValue:))
-    }
-
-    var availableWiFiModes: [StatusBarConfiguration.WiFiModeOption] {
-        StatusBarConfiguration.WiFiModeOption.allCases.filter { supportedWiFiModes.contains($0.rawValue) }
-    }
-
-    var availableCellularModes: [StatusBarConfiguration.CellularModeOption] {
-        StatusBarConfiguration.CellularModeOption.allCases.filter { supportedCellularModes.contains($0.rawValue) }
-    }
-
-    var availableBatteryStates: [StatusBarConfiguration.BatteryStateOption] {
-        StatusBarConfiguration.BatteryStateOption.allCases.filter { supportedBatteryStates.contains($0.rawValue) }
-    }
-
     var supportsMVP: Bool {
         let requiredFlags: Set<Flag> = [
             .time,
-            .dataNetwork,
-            .wifiMode,
-            .wifiBars,
-            .cellularMode,
-            .cellularBars,
             .batteryState,
             .batteryLevel,
         ]

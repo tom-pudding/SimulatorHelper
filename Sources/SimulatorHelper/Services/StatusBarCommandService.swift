@@ -53,12 +53,7 @@ struct StatusBarCommandService: Sendable {
         return [
             "simctl", "status_bar", simulatorID, "override",
             "--time", configuration.resolvedTimeOverrideValue,
-            "--dataNetwork", configuration.dataNetwork.rawValue,
-            "--wifiMode", configuration.wifiMode.rawValue,
-            "--wifiBars", String(configuration.wifiBars),
-            "--cellularMode", configuration.cellularMode.rawValue,
-            "--cellularBars", String(configuration.cellularBars),
-            "--batteryState", configuration.batteryState.rawValue,
+            "--batteryState", configuration.resolvedBatteryState.rawValue,
             "--batteryLevel", String(configuration.batteryLevel),
         ]
     }
@@ -71,11 +66,6 @@ struct StatusBarCommandService: Sendable {
 
         let requiredFlags: [StatusBarCapabilities.Flag] = [
             .time,
-            .dataNetwork,
-            .wifiMode,
-            .wifiBars,
-            .cellularMode,
-            .cellularBars,
             .batteryState,
             .batteryLevel,
         ]
@@ -84,28 +74,8 @@ struct StatusBarCommandService: Sendable {
             throw StatusBarCommandError.validationFailed("The active toolchain does not support the \(flag.rawValue) status bar option.")
         }
 
-        guard capabilities.supportedDataNetworks.contains(configuration.dataNetwork.rawValue) else {
-            throw StatusBarCommandError.validationFailed("The selected network type is not supported by the active toolchain.")
-        }
-
-        guard capabilities.supportedWiFiModes.contains(configuration.wifiMode.rawValue) else {
-            throw StatusBarCommandError.validationFailed("The selected Wi-Fi mode is not supported by the active toolchain.")
-        }
-
-        guard capabilities.supportedCellularModes.contains(configuration.cellularMode.rawValue) else {
-            throw StatusBarCommandError.validationFailed("The selected cellular mode is not supported by the active toolchain.")
-        }
-
-        guard capabilities.supportedBatteryStates.contains(configuration.batteryState.rawValue) else {
-            throw StatusBarCommandError.validationFailed("The selected battery state is not supported by the active toolchain.")
-        }
-
-        guard capabilities.wifiBarsRange.contains(configuration.wifiBars) else {
-            throw StatusBarCommandError.validationFailed("Wi-Fi bars must stay within \(capabilities.wifiBarsRange.lowerBound)-\(capabilities.wifiBarsRange.upperBound).")
-        }
-
-        guard capabilities.cellularBarsRange.contains(configuration.cellularBars) else {
-            throw StatusBarCommandError.validationFailed("Cellular bars must stay within \(capabilities.cellularBarsRange.lowerBound)-\(capabilities.cellularBarsRange.upperBound).")
+        guard capabilities.supportedBatteryStates.contains(configuration.resolvedBatteryState.rawValue) else {
+            throw StatusBarCommandError.validationFailed("The active toolchain does not support the required battery state override.")
         }
 
         guard capabilities.batteryLevelRange.contains(configuration.batteryLevel) else {

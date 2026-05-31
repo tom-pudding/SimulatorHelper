@@ -15,11 +15,6 @@ struct StatusBarCommandServiceTests {
         #expect(arguments == [
             "simctl", "status_bar", sampleSimulator.udid, "override",
             "--time", "9:41",
-            "--dataNetwork", "wifi",
-            "--wifiMode", "active",
-            "--wifiBars", "3",
-            "--cellularMode", "active",
-            "--cellularBars", "4",
             "--batteryState", "charged",
             "--batteryLevel", "100",
         ])
@@ -57,9 +52,9 @@ struct StatusBarCommandServiceTests {
     }
 
     @Test
-    func acceptsAdvancedRuntimeNetworkSelections() throws {
+    func usesDischargingBatteryStateBelowOneHundredPercent() throws {
         var configuration = StatusBarConfiguration.defaultMVP
-        configuration.dataNetwork = .fiveGUWB
+        configuration.batteryLevel = 80
 
         let arguments = try StatusBarCommandService().buildOverrideArguments(
             configuration: configuration,
@@ -67,24 +62,24 @@ struct StatusBarCommandServiceTests {
             simulatorID: sampleSimulator.udid
         )
 
-        #expect(arguments[7] == "5g-uwb")
+        #expect(arguments[7] == "discharging")
     }
 
     @Test
-    func rejectsUnsupportedNetworkSelections() {
-        var configuration = StatusBarConfiguration.defaultMVP
-        configuration.dataNetwork = .fiveG
-
+    func rejectsUnsupportedBatteryStateSupport() {
         let limitedCapabilities = StatusBarCapabilities(
-            supportedFlags: sampleCapabilities.supportedFlags,
-            supportedDataNetworks: ["wifi", "3g", "4g", "lte"],
-            supportedWiFiModes: sampleCapabilities.supportedWiFiModes,
-            supportedCellularModes: sampleCapabilities.supportedCellularModes,
-            supportedBatteryStates: sampleCapabilities.supportedBatteryStates,
+            supportedFlags: [.time, .batteryState, .batteryLevel],
+            supportedDataNetworks: [],
+            supportedWiFiModes: [],
+            supportedCellularModes: [],
+            supportedBatteryStates: ["charged"],
             wifiBarsRange: sampleCapabilities.wifiBarsRange,
             cellularBarsRange: sampleCapabilities.cellularBarsRange,
             batteryLevelRange: sampleCapabilities.batteryLevelRange
         )
+
+        var configuration = StatusBarConfiguration.defaultMVP
+        configuration.batteryLevel = 80
 
         #expect(throws: StatusBarCommandError.self) {
             _ = try StatusBarCommandService().buildOverrideArguments(
@@ -97,10 +92,10 @@ struct StatusBarCommandServiceTests {
 }
 
 private let sampleCapabilities = StatusBarCapabilities(
-    supportedFlags: [.time, .dataNetwork, .wifiMode, .wifiBars, .cellularMode, .cellularBars, .batteryState, .batteryLevel, .operatorName],
-    supportedDataNetworks: ["hide", "wifi", "3g", "4g", "lte", "lte-a", "lte+", "5g", "5g+", "5g-uwb", "5g-uc"],
-    supportedWiFiModes: ["searching", "failed", "active"],
-    supportedCellularModes: ["notSupported", "searching", "failed", "active"],
+    supportedFlags: [.time, .batteryState, .batteryLevel, .operatorName],
+    supportedDataNetworks: [],
+    supportedWiFiModes: [],
+    supportedCellularModes: [],
     supportedBatteryStates: ["charging", "charged", "discharging"],
     wifiBarsRange: 0...3,
     cellularBarsRange: 0...4,
