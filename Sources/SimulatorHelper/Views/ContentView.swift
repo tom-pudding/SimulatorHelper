@@ -66,6 +66,7 @@ struct ContentView: View {
                     )
                     selectedSimulatorCard
                     statusBarSection
+                    screenshotSection
                     toolchainDetails
                     nextSteps
                 }
@@ -84,7 +85,7 @@ struct ContentView: View {
             Text("Simulator Helper")
                 .font(.system(size: 32, weight: .semibold, design: .rounded))
 
-            Text("Phase 3 adds validated status bar controls and command execution for the currently selected booted simulator.")
+            Text("Phase 4 adds screenshot folder persistence and simulator screenshot capture for the currently selected booted simulator.")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -146,6 +147,27 @@ struct ContentView: View {
         .disabled(viewModel.selectedSimulator == nil || viewModel.isLoadingSimulators)
     }
 
+    private var screenshotSection: some View {
+        ScreenshotSectionView(
+            folderURL: viewModel.screenshotFolderURL,
+            isChoosingFolder: viewModel.isChoosingScreenshotFolder,
+            isCapturingScreenshot: viewModel.isCapturingScreenshot,
+            resultMessage: viewModel.screenshotResultMessage,
+            resultIsError: viewModel.screenshotResultIsError,
+            onChooseFolder: {
+                Task {
+                    await viewModel.chooseScreenshotFolder()
+                }
+            },
+            onCapture: {
+                Task {
+                    await viewModel.captureScreenshot()
+                }
+            }
+        )
+        .disabled(viewModel.selectedSimulator == nil || viewModel.isLoadingSimulators)
+    }
+
     private var toolchainDetails: some View {
         GroupBox {
             Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 12) {
@@ -167,7 +189,6 @@ struct ContentView: View {
     private var nextSteps: some View {
         GroupBox {
             VStack(alignment: .leading, spacing: 12) {
-                Label("Phase 4 will add screenshot folder selection and capture.", systemImage: "camera")
                 Label("Phase 5 will finalize validation, polish, and handoff readiness.", systemImage: "checkmark.seal")
             }
             .foregroundStyle(.secondary)

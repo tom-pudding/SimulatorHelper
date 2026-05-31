@@ -1,3 +1,4 @@
+import Foundation
 import Observation
 
 @MainActor
@@ -16,22 +17,39 @@ final class AppViewModel {
     var isPerformingStatusBarAction = false
     var statusBarResultMessage: String?
     var statusBarResultIsError = false
+    var screenshotFolderURL: URL
+    var isChoosingScreenshotFolder = false
+    var isCapturingScreenshot = false
+    var screenshotResultMessage: String?
+    var screenshotResultIsError = false
 
     private let environmentService: EnvironmentService
     private let simulatorInventoryService: SimulatorInventoryService
     private let statusBarCapabilitiesService: StatusBarCapabilitiesService
     private let statusBarCommandService: StatusBarCommandService
+    private let appSettingsStore: AppSettingsStore
+    private let folderSelectionService: FolderSelectionService
+    private let screenshotService: ScreenshotService
 
     init(
         environmentService: EnvironmentService = EnvironmentService(),
         simulatorInventoryService: SimulatorInventoryService = SimulatorInventoryService(),
         statusBarCapabilitiesService: StatusBarCapabilitiesService = StatusBarCapabilitiesService(),
-        statusBarCommandService: StatusBarCommandService = StatusBarCommandService()
+        statusBarCommandService: StatusBarCommandService = StatusBarCommandService(),
+        appSettingsStore: AppSettingsStore = AppSettingsStore(),
+        folderSelectionService: FolderSelectionService = FolderSelectionService(),
+        screenshotService: ScreenshotService = ScreenshotService()
     ) {
+        let screenshotFolderURL = appSettingsStore.loadScreenshotFolder()
+
         self.environmentService = environmentService
         self.simulatorInventoryService = simulatorInventoryService
         self.statusBarCapabilitiesService = statusBarCapabilitiesService
         self.statusBarCommandService = statusBarCommandService
+        self.appSettingsStore = appSettingsStore
+        self.folderSelectionService = folderSelectionService
+        self.screenshotService = screenshotService
+        self.screenshotFolderURL = screenshotFolderURL
     }
 
     func loadInitialData() async {
@@ -165,6 +183,47 @@ final class AppViewModel {
         } catch {
             statusBarResultMessage = error.localizedDescription
             statusBarResultIsError = true
+        }
+    }
+
+    func chooseScreenshotFolder() async {
+        guard !isChoosingScreenshotFolder else {
+            return
+        }
+
+        isChoosingScreenshotFolder = true
+        defer { isChoosingScreenshotFolder = false }
+
+        if let folder = folderSelectionService.chooseFolder(startingAt: screenshotFolderURL) {
+            screenshotFolderURL = folder
+            appSettingsStore.saveScreenshotFolder(folder)
+            screenshotResultMessage = "Updated screenshot folder to \(folder.path)."
+            screenshotResultIsError = false
+        }
+    }
+
+    func captureScreenshot() async {
+        guard let selectedSimulator else {
+            return
+        }
+
+        guard !isCapturingScreenshot else {
+            return
+        }
+
+        isCapturingScreenshot = true
+        defer { isCapturingScreenshot = false }
+
+        do {
+            let outputURL = try await screenshotService.capture(
+                from: selectedSimulator,
+                destinationFolder: screenshotFolderURL
+            )
+            screenshotResultMessage = "Saved screenshot to \(outputURL.path)."
+            screenshotResultIsError = false
+        } catch {
+            screenshotResultMessage = error.localizedDescription
+            screenshotResultIsError = true
         }
     }
 

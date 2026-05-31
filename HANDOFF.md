@@ -6,9 +6,9 @@ Completed:
 - Phase 1 from `TASKS.md`
 - Phase 2 from `TASKS.md`
 - Phase 3 from `TASKS.md`
+- Phase 4 from `TASKS.md`
 
 Not started:
-- Phase 4 screenshot workflow
 - Phase 5 final verification and polish
 
 ## What Phase 1 Added
@@ -47,6 +47,15 @@ Not started:
   - battery state and level
 - status bar capability and command tests
 
+## What Phase 4 Added
+
+- `AppSettingsStore` for screenshot folder persistence
+- default screenshot folder at `~/Desktop/Simulator Helper`
+- `FolderSelectionService` using a native macOS folder chooser
+- `ScreenshotService` for filename generation and `simctl io screenshot`
+- screenshot UI section with folder selection and capture actions
+- screenshot and settings store tests
+
 ## Build and Test
 
 Use:
@@ -60,13 +69,12 @@ In this Codex environment, build and test commands require execution outside the
 
 ## Next Recommended Step
 
-Start Phase 4 from `TASKS.md`:
+Start Phase 5 from `TASKS.md`:
 
-1. add folder picker flow
-2. persist the chosen folder
-3. generate the screenshot filename
-4. implement `simctl io screenshot`
-5. show success and failure messages clearly
+1. verify behavior with current simulator states
+2. review error handling and repeated action flows
+3. update README and HANDOFF with final state
+4. document any residual limitations
 
 ## Notes
 

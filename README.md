@@ -4,7 +4,7 @@ Simulator Helper is a native macOS SwiftUI utility for configuring iOS Simulator
 
 ## Current Status
 
-Phase 3 is complete.
+Phase 4 is complete.
 
 Implemented so far:
 - macOS SwiftUI app scaffold
@@ -17,10 +17,12 @@ Implemented so far:
 - manual simulator refresh
 - status bar capability detection from the active `simctl`
 - validated MVP status bar form and apply/clear actions
+- screenshot folder persistence with a default Desktop destination
+- screenshot filename generation and capture command wiring
 - unit tests for environment, inventory, and status bar services
 
 Planned next:
-- Phase 4: screenshot workflow
+- Phase 5: verification, polish, and final handoff
 
 ## Requirements
 
