@@ -19,6 +19,7 @@ Implemented so far:
 - validated status bar form and apply/clear actions
 - time-only and date-plus-time overrides for iPhone and iPad screenshot workflows
 - runtime-driven network type options, including advanced LTE and 5G variants when supported
+- iPhone-aware UI that keeps `Date + Time` unavailable unless an iPad simulator is selected
 - screenshot folder persistence with a default Desktop destination
 - screenshot filename generation and capture command wiring
 - unit tests for environment, inventory, status bar, screenshot, and settings services
@@ -30,6 +31,7 @@ Known MVP limitations:
 - no open-save-folder action yet
 - no presets or batch capture yet
 - date visibility still depends on the simulator device family and the current app layout; iPhone usually shows only the time
+- some newer iPhone simulator layouts can keep the Wi-Fi glyph even when a cellular network override is active
 
 Next version candidates:
 - carrier name editing

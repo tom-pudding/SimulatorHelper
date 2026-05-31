@@ -7,7 +7,11 @@ final class AppViewModel {
     var environmentStatus = EnvironmentStatus.empty
     var isLoadingEnvironment = false
     var simulators: [SimulatorDescriptor] = []
-    var selectedSimulatorID: SimulatorDescriptor.ID?
+    var selectedSimulatorID: SimulatorDescriptor.ID? {
+        didSet {
+            synchronizeStatusBarConfigurationForSelection()
+        }
+    }
     var isLoadingSimulators = false
     var simulatorErrorMessage: String?
     var statusBarCapabilities = StatusBarCapabilities.empty
@@ -235,11 +239,27 @@ final class AppViewModel {
         return simulators.first(where: { $0.id == selectedSimulatorID })
     }
 
+    var selectedSimulatorProductFamily: SimulatorDescriptor.ProductFamily? {
+        selectedSimulator?.productFamily
+    }
+
+    var allowsDateAndTimeOverride: Bool {
+        selectedSimulatorProductFamily == .iPad
+    }
+
     private func synchronizeSelection() {
         if let selectedSimulatorID, simulators.contains(where: { $0.id == selectedSimulatorID }) {
+            synchronizeStatusBarConfigurationForSelection()
             return
         }
 
         selectedSimulatorID = simulators.first?.id
+    }
+
+    private func synchronizeStatusBarConfigurationForSelection() {
+        guard allowsDateAndTimeOverride else {
+            statusBarConfiguration.timeOverrideMode = .timeOnly
+            return
+        }
     }
 }

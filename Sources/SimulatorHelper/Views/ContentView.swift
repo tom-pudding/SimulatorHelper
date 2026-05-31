@@ -123,6 +123,8 @@ struct ContentView: View {
         StatusBarFormView(
             configuration: $viewModel.statusBarConfiguration,
             capabilities: viewModel.statusBarCapabilities,
+            selectedProductFamily: viewModel.selectedSimulatorProductFamily,
+            allowsDateAndTimeOverride: viewModel.allowsDateAndTimeOverride,
             hasSelectedSimulator: viewModel.selectedSimulator != nil,
             isLoadingCapabilities: viewModel.isLoadingStatusBarCapabilities,
             capabilitiesErrorMessage: viewModel.statusBarCapabilitiesErrorMessage,
