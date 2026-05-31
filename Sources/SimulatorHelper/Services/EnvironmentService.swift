@@ -1,6 +1,6 @@
 import Foundation
 
-struct EnvironmentService {
+struct EnvironmentService: Sendable {
     private struct CommandFailure: Error {
         let message: String
     }

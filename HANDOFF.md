@@ -4,9 +4,9 @@
 
 Completed:
 - Phase 1 from `TASKS.md`
+- Phase 2 from `TASKS.md`
 
 Not started:
-- Phase 2 booted simulator discovery
 - Phase 3 status bar controls
 - Phase 4 screenshot workflow
 - Phase 5 final verification and polish
@@ -24,6 +24,16 @@ Not started:
 - initial UI showing environment readiness and toolchain details
 - environment-layer tests using a stubbed process runner
 
+## What Phase 2 Added
+
+- `SimulatorInventoryService` backed by `xcrun simctl list devices --json`
+- filtering for booted iPhone and iPad simulators only
+- stable sorting for returned simulators
+- sidebar selection state for one active simulator
+- manual simulator refresh action
+- selected-simulator detail card in the main panel
+- simulator inventory tests using stubbed JSON
+
 ## Build and Test
 
 Use:
@@ -37,14 +47,14 @@ In this Codex environment, build and test commands require execution outside the
 
 ## Next Recommended Step
 
-Start Phase 2 from `TASKS.md`:
+Start Phase 3 from `TASKS.md`:
 
-1. decode `xcrun simctl list devices --json`
-2. filter to booted iOS and iPadOS simulators
-3. build the sidebar list
-4. add single selection
-5. add manual refresh
-6. add the empty state for no booted simulators
+1. parse `xcrun simctl help status_bar`
+2. build the capability model
+3. build the MVP form only
+4. validate ranges and required values
+5. implement `Apply Settings`
+6. implement `Clear Overrides`
 
 ## Notes
 

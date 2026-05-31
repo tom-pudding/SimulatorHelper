@@ -4,16 +4,42 @@ struct ContentView: View {
     @State private var viewModel = AppViewModel()
 
     var body: some View {
+        @Bindable var viewModel = viewModel
+
         NavigationSplitView {
-            List {
+            List(selection: $viewModel.selectedSimulatorID) {
                 Section("Booted Simulators") {
-                    Label("Phase 2 will load booted iPhone and iPad simulators here.", systemImage: "iphone.gen3")
-                        .foregroundStyle(.secondary)
-                    Label("Selection and refresh actions will become active in the next phase.", systemImage: "arrow.clockwise")
-                        .foregroundStyle(.secondary)
+                    if viewModel.isLoadingSimulators {
+                        Label("Loading booted simulators…", systemImage: "hourglass")
+                            .foregroundStyle(.secondary)
+                    } else if let simulatorErrorMessage = viewModel.simulatorErrorMessage {
+                        Label(simulatorErrorMessage, systemImage: "exclamationmark.triangle")
+                            .foregroundStyle(.orange)
+                    } else if viewModel.simulators.isEmpty {
+                        Label("Boot an iPhone or iPad simulator in Simulator.app to begin.", systemImage: "power")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(viewModel.simulators) { simulator in
+                            simulatorRow(for: simulator)
+                                .tag(Optional(simulator.id))
+                        }
+                    }
                 }
 
-                Section {
+                Section("Actions") {
+                    Button {
+                        Task {
+                            await viewModel.loadSimulators()
+                        }
+                    } label: {
+                        if viewModel.isLoadingSimulators {
+                            Label("Refreshing Simulators…", systemImage: "hourglass")
+                        } else {
+                            Label("Refresh Simulators", systemImage: "arrow.clockwise")
+                        }
+                    }
+                    .disabled(viewModel.isLoadingSimulators)
+
                     Button {
                         Task {
                             await viewModel.loadEnvironment()
@@ -38,6 +64,7 @@ struct ContentView: View {
                         status: viewModel.environmentStatus,
                         isLoading: viewModel.isLoadingEnvironment
                     )
+                    selectedSimulatorCard
                     toolchainDetails
                     nextSteps
                 }
@@ -47,7 +74,7 @@ struct ContentView: View {
             .background(Color(nsColor: .windowBackgroundColor))
         }
         .task {
-            await viewModel.loadEnvironmentIfNeeded()
+            await viewModel.loadInitialData()
         }
     }
 
@@ -56,10 +83,42 @@ struct ContentView: View {
             Text("Simulator Helper")
                 .font(.system(size: 32, weight: .semibold, design: .rounded))
 
-            Text("Phase 1 establishes the macOS app shell and verifies the active Xcode toolchain before simulator-specific work begins.")
+            Text("Phase 2 adds booted simulator discovery and selection while keeping the screenshot and status bar controls staged for later phases.")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var selectedSimulatorCard: some View {
+        GroupBox {
+            VStack(alignment: .leading, spacing: 12) {
+                if let simulator = viewModel.selectedSimulator {
+                    Label(simulator.name, systemImage: simulator.productFamily.symbolName)
+                        .font(.headline)
+
+                    detailLine(label: "Runtime", value: simulator.runtimeName)
+                    detailLine(label: "State", value: simulator.state)
+                    detailLine(label: "UDID", value: simulator.udid)
+
+                    Text("Status bar controls and screenshot actions will attach to this selected simulator in the next phases.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else if viewModel.isLoadingSimulators {
+                    ProgressView("Looking for booted simulators…")
+                        .progressViewStyle(.linear)
+                } else {
+                    ContentUnavailableView(
+                        "No Booted Simulator Selected",
+                        systemImage: "iphone.slash",
+                        description: Text("Boot an iPhone or iPad simulator, then use Refresh Simulators to load it here.")
+                    )
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } label: {
+            Label("Selected Simulator", systemImage: "sidebar.right")
         }
     }
 
@@ -84,9 +143,9 @@ struct ContentView: View {
     private var nextSteps: some View {
         GroupBox {
             VStack(alignment: .leading, spacing: 12) {
-                Label("Phase 2 will add booted simulator discovery and selection.", systemImage: "sidebar.leading")
                 Label("Phase 3 will add the MVP status bar controls and apply/clear actions.", systemImage: "switch.2")
                 Label("Phase 4 will add screenshot folder selection and capture.", systemImage: "camera")
+                Label("Phase 5 will finalize validation, polish, and handoff readiness.", systemImage: "checkmark.seal")
             }
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -102,6 +161,26 @@ struct ContentView: View {
             Text(value)
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func detailLine(label: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .textSelection(.enabled)
+        }
+    }
+
+    private func simulatorRow(for simulator: SimulatorDescriptor) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Label(simulator.name, systemImage: simulator.productFamily.symbolName)
+                .foregroundStyle(.primary)
+            Text(simulator.runtimeName)
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 }
