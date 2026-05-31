@@ -7,9 +7,10 @@ Completed:
 - Phase 2 from `TASKS.md`
 - Phase 3 from `TASKS.md`
 - Phase 4 from `TASKS.md`
+- Phase 5 from `TASKS.md`
 
 Not started:
-- Phase 5 final verification and polish
+- Version 1.1 backlog
 
 ## What Phase 1 Added
 
@@ -56,6 +57,13 @@ Not started:
 - screenshot UI section with folder selection and capture actions
 - screenshot and settings store tests
 
+## What Phase 5 Finalized
+
+- final MVP build/test verification pass
+- README updated to reflect completed MVP scope
+- HANDOFF updated for future version work
+- residual MVP limitations documented
+
 ## Build and Test
 
 Use:
@@ -69,12 +77,15 @@ In this Codex environment, build and test commands require execution outside the
 
 ## Next Recommended Step
 
-Start Phase 5 from `TASKS.md`:
+Next recommended step:
 
-1. verify behavior with current simulator states
-2. review error handling and repeated action flows
-3. update README and HANDOFF with final state
-4. document any residual limitations
+Start Version 1.1 work from the approved roadmap:
+
+1. add carrier name editing
+2. add advanced network variants
+3. add open-save-folder action
+4. persist last-used status bar form values
+5. add optional auto-refresh
 
 ## Notes
 
