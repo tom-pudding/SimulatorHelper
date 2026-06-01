@@ -21,9 +21,11 @@ struct StatusBarCommandServiceTests {
     }
 
     @Test
-    func preservesCustomTimeStrings() throws {
+    func usesTimeOnlyHoursAndMinutesFromDateValue() throws {
         var configuration = StatusBarConfiguration.defaultMVP
-        configuration.timeString = "10:27"
+        configuration.dateAndTimeOverride = Calendar(identifier: .gregorian).date(
+            from: DateComponents(year: 2026, month: 6, day: 1, hour: 10, minute: 27, second: 0)
+        )!
 
         let arguments = try StatusBarCommandService().buildOverrideArguments(
             configuration: configuration,

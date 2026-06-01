@@ -23,14 +23,12 @@ struct StatusBarConfiguration: Equatable, Sendable {
     }
 
     var timeOverrideMode: TimeOverrideMode
-    var timeString: String
     var dateAndTimeOverride: Date
     var batteryLevel: Int
 
     static var defaultMVP: StatusBarConfiguration {
         StatusBarConfiguration(
             timeOverrideMode: .timeOnly,
-            timeString: "9:41",
             dateAndTimeOverride: defaultDateAndTimeOverride(),
             batteryLevel: 100
         )
@@ -45,23 +43,31 @@ struct StatusBarConfiguration: Equatable, Sendable {
     }
 
     var resolvedTimeOverrideValue: String {
+        let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: dateAndTimeOverride)
+        let year = components.year ?? 1970
+        let month = components.month ?? 1
+        let day = components.day ?? 1
+        let hour = components.hour ?? 9
+        let minute = components.minute ?? 41
+
         switch timeOverrideMode {
         case .timeOnly:
-            return timeString.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            return String(format: "%d:%02d", hour, minute)
         case .dateAndTime:
-            let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: dateAndTimeOverride)
-            let year = components.year ?? 1970
-            let month = components.month ?? 1
-            let day = components.day ?? 1
-            let hour = components.hour ?? 9
-            let minute = components.minute ?? 41
-
             return String(format: "%04d-%02d-%02dT%02d:%02d:%02d", year, month, day, hour, minute, 0)
         }
     }
 
     var resolvedBatteryState: BatteryStateOption {
         batteryLevel == 100 ? .charged : .discharging
+    }
+
+    mutating func resetTimeToDefault(calendar: Calendar = .current) {
+        var components = calendar.dateComponents([.year, .month, .day], from: dateAndTimeOverride)
+        components.hour = 9
+        components.minute = 41
+        components.second = 0
+        dateAndTimeOverride = calendar.date(from: components) ?? dateAndTimeOverride
     }
 
     mutating func normalize(using capabilities: StatusBarCapabilities) {

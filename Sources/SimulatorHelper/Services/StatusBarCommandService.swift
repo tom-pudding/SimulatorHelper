@@ -59,11 +59,6 @@ struct StatusBarCommandService: Sendable {
     }
 
     private func validate(configuration: StatusBarConfiguration, capabilities: StatusBarCapabilities) throws {
-        guard configuration.timeOverrideMode == .dateAndTime ||
-                !configuration.timeString.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty else {
-            throw StatusBarCommandError.validationFailed("Time is required.")
-        }
-
         let requiredFlags: [StatusBarCapabilities.Flag] = [
             .time,
             .batteryState,

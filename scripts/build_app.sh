@@ -5,13 +5,15 @@ set -euo pipefail
 ROOT_DIR="$(cd -- "$(dirname -- "$0")/.." && pwd)"
 APP_NAME="SimulatorHelper"
 APP_IDENTIFIER="com.tomo.simulatorhelper"
-BUILD_OUTPUT_DIR="$ROOT_DIR/Build"
+BUILD_OUTPUT_DIR="$ROOT_DIR/.build/AppBundle"
 APP_BUNDLE_PATH="$BUILD_OUTPUT_DIR/$APP_NAME.app"
 CONTENTS_DIR="$APP_BUNDLE_PATH/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
 SHORT_VERSION="${SIMULATOR_HELPER_VERSION:-0.1.0}"
 BUILD_VERSION="$(git -C "$ROOT_DIR" rev-list --count HEAD 2>/dev/null || echo 1)"
+LEGACY_VISIBLE_APP_PATH="$ROOT_DIR/Build/$APP_NAME.app"
+LEGACY_HIDDEN_DIR="$ROOT_DIR/.build/LegacyAppBundles"
 
 echo "Building $APP_NAME in release mode..."
 swift build --package-path "$ROOT_DIR" -c release
@@ -26,6 +28,11 @@ fi
 
 rm -rf "$APP_BUNDLE_PATH"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
+
+if [[ -d "$LEGACY_VISIBLE_APP_PATH" ]]; then
+  mkdir -p "$LEGACY_HIDDEN_DIR"
+  mv "$LEGACY_VISIBLE_APP_PATH" "$LEGACY_HIDDEN_DIR/$APP_NAME.app"
+fi
 
 cp "$EXECUTABLE_PATH" "$MACOS_DIR/$APP_NAME"
 chmod +x "$MACOS_DIR/$APP_NAME"

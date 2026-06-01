@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct StatusBarFormView: View {
-    private let modeControlWidth: CGFloat = 280
+    private let modeControlWidth: CGFloat = 320
 
     @Binding var configuration: StatusBarConfiguration
     let capabilities: StatusBarCapabilities
@@ -91,38 +91,26 @@ struct StatusBarFormView: View {
             .pickerStyle(.segmented)
             .frame(width: modeControlWidth, alignment: .leading)
 
-            if configuration.timeOverrideMode == .timeOnly {
-                HStack(spacing: 12) {
-                    TextField("9:41", text: $configuration.timeString)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(minWidth: 160)
+            HStack(alignment: .top, spacing: 12) {
+                DatePicker(
+                    "Date",
+                    selection: $configuration.dateAndTimeOverride,
+                    displayedComponents: [.date]
+                )
+                .disabled(configuration.timeOverrideMode == .timeOnly)
+                .opacity(configuration.timeOverrideMode == .timeOnly ? 0.55 : 1)
 
-                    Button("Use 9:41") {
-                        configuration.timeString = "9:41"
-                    }
-                    .buttonStyle(.bordered)
-                    .disabled(isPerformingAction)
+                DatePicker(
+                    "Time",
+                    selection: $configuration.dateAndTimeOverride,
+                    displayedComponents: [.hourAndMinute]
+                )
+
+                Button("Use 9:41") {
+                    configuration.resetTimeToDefault()
                 }
-            } else {
-                HStack(alignment: .top, spacing: 12) {
-                    DatePicker(
-                        "Date",
-                        selection: $configuration.dateAndTimeOverride,
-                        displayedComponents: [.date]
-                    )
-
-                    DatePicker(
-                        "Time",
-                        selection: $configuration.dateAndTimeOverride,
-                        displayedComponents: [.hourAndMinute]
-                    )
-
-                    Button("Use Today 9:41") {
-                        configuration.dateAndTimeOverride = StatusBarConfiguration.defaultDateAndTimeOverride()
-                    }
-                    .buttonStyle(.bordered)
-                    .disabled(isPerformingAction)
-                }
+                .buttonStyle(.bordered)
+                .disabled(isPerformingAction)
             }
         }
     }
