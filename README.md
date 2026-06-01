@@ -2,6 +2,20 @@
 
 Simulator Helper is a native macOS SwiftUI utility for configuring iOS Simulator status bar settings and capturing screenshots without using Terminal.
 
+## Documentation Status
+
+Current source of truth for the implemented app:
+- `README.md`
+- `docs/SIMULATOR_HELPER_HANDOFF.md`
+
+Historical planning references:
+- `docs/SIMULATOR_HELPER_PRODUCT_HISTORICAL.md`
+- `docs/SIMULATOR_HELPER_ARCHITECTURE_HISTORICAL.md`
+- `docs/SIMULATOR_HELPER_TASKS_HISTORICAL.md`
+- `docs/SIMULATOR_HELPER_RISKS_HISTORICAL.md`
+
+Those historical planning docs are preserved for context and may not match the current implementation exactly.
+
 ## Current Status
 
 MVP implementation is complete.

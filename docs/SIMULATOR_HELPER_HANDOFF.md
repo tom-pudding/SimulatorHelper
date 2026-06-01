@@ -1,13 +1,25 @@
 # Simulator Helper Handoff
 
+## Source of Truth
+
+Use this file together with `../README.md` as the current source of truth for implemented behavior and current project status.
+
+Older planning documents are preserved as historical references only:
+- `SIMULATOR_HELPER_PRODUCT_HISTORICAL.md`
+- `SIMULATOR_HELPER_ARCHITECTURE_HISTORICAL.md`
+- `SIMULATOR_HELPER_TASKS_HISTORICAL.md`
+- `SIMULATOR_HELPER_RISKS_HISTORICAL.md`
+
+Those historical docs may not match the current implementation exactly.
+
 ## Current Status
 
 Completed:
-- Phase 1 from `TASKS.md`
-- Phase 2 from `TASKS.md`
-- Phase 3 from `TASKS.md`
-- Phase 4 from `TASKS.md`
-- Phase 5 from `TASKS.md`
+- Phase 1 from `SIMULATOR_HELPER_TASKS_HISTORICAL.md`
+- Phase 2 from `SIMULATOR_HELPER_TASKS_HISTORICAL.md`
+- Phase 3 from `SIMULATOR_HELPER_TASKS_HISTORICAL.md`
+- Phase 4 from `SIMULATOR_HELPER_TASKS_HISTORICAL.md`
+- Phase 5 from `SIMULATOR_HELPER_TASKS_HISTORICAL.md`
 
 Not started:
 - Version 1.1 backlog
