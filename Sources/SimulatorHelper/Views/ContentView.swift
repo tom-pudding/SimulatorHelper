@@ -169,9 +169,9 @@ struct ContentView: View {
                 detailRow(label: "Xcode Version", value: viewModel.environmentStatus.xcodeVersion ?? "Unknown")
                 detailRow(label: "Build", value: viewModel.environmentStatus.xcodeBuild ?? "Unknown")
                 detailRow(label: "Developer Directory", value: viewModel.environmentStatus.developerDirectory ?? "Unknown")
-                detailRow(label: "simctl Path", value: viewModel.environmentStatus.simctlPath ?? "Unknown")
+                detailRow(label: "Simulator Tool Path", value: viewModel.environmentStatus.simctlPath ?? "Unknown")
                 detailRow(
-                    label: "status_bar Support",
+                    label: "Status Bar Support",
                     value: viewModel.environmentStatus.statusBarSupportAvailable ? "Available" : "Unavailable"
                 )
             }

@@ -36,8 +36,7 @@ struct StatusBarFormView: View {
                 } else {
                     Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 14) {
                         GridRow {
-                            Text("")
-                                .accessibilityHidden(true)
+                            label("Time")
                             timeOverrideControls
                         }
 
