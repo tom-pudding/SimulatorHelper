@@ -68,7 +68,6 @@ struct ContentView: View {
                     statusBarSection
                     screenshotSection
                     toolchainDetails
-                    nextSteps
                 }
                 .padding(24)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -84,11 +83,6 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Simulator Helper")
                 .font(.system(size: 32, weight: .semibold, design: .rounded))
-
-            Text("Phase 4 adds screenshot folder persistence and simulator screenshot capture for the currently selected booted simulator.")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -123,7 +117,6 @@ struct ContentView: View {
         StatusBarFormView(
             configuration: $viewModel.statusBarConfiguration,
             capabilities: viewModel.statusBarCapabilities,
-            selectedProductFamily: viewModel.selectedSimulatorProductFamily,
             allowsDateAndTimeOverride: viewModel.allowsDateAndTimeOverride,
             hasSelectedSimulator: viewModel.selectedSimulator != nil,
             isLoadingCapabilities: viewModel.isLoadingStatusBarCapabilities,
@@ -185,18 +178,6 @@ struct ContentView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         } label: {
             Label("Toolchain Details", systemImage: "wrench.and.screwdriver")
-        }
-    }
-
-    private var nextSteps: some View {
-        GroupBox {
-            VStack(alignment: .leading, spacing: 12) {
-                Label("Phase 5 will finalize validation, polish, and handoff readiness.", systemImage: "checkmark.seal")
-            }
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-        } label: {
-            Label("Implementation Roadmap", systemImage: "list.bullet.rectangle")
         }
     }
 
