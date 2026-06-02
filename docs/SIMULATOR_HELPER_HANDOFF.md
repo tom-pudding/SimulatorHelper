@@ -24,6 +24,15 @@ Completed:
 Not started:
 - Version 1.1 backlog
 
+Approved Version 1.1 direction:
+- do not implement carrier name editing in Version 1.1
+- keep carrier name editing deferred unless real user demand or repeated workflow pain is confirmed
+- prioritize:
+  1. persisted last-used status bar values
+  2. open-save-folder action
+  3. validation hardening
+- keep optional auto-refresh below those items
+
 Latest completed follow-up:
 - added `Date + Time` status bar override mode for iPad-relevant screenshot cases
 - kept `Time Only` mode for standard iPhone screenshot workflows
@@ -124,13 +133,35 @@ In this Codex environment, build and test commands require execution outside the
 
 Next recommended step:
 
-Start Version 1.1 work from the approved roadmap:
+Start Version 1.1 work with the updated priority order:
 
-1. add carrier name editing
+1. persist last-used status bar form values
 2. add open-save-folder action
-3. persist last-used status bar form values
-4. add optional auto-refresh
-5. manually validate time/date and battery appearance across at least one iPhone and one iPad simulator
+3. harden validation before lower-priority feature expansion
+
+Recommended implementation breakdown:
+
+1. Persist last-used status bar values
+   - store the current status bar form values alongside the screenshot folder
+   - restore them on launch
+   - keep the existing iPhone/iPad normalization so unsupported `Date + Time` state still falls back safely
+   - verify with unit tests for save/load and selection-based normalization
+2. Open Save Folder
+   - add an explicit action in the screenshot section for opening the current destination folder
+   - keep the flow Finder-oriented rather than expanding into broader file management
+   - verify that the button opens the selected folder and respects the persisted destination
+3. Validation hardening
+   - add parser-focused tests for `simctl help status_bar` drift risk
+   - add coverage for persisted-value edge cases and screenshot workflow edge cases
+   - manually validate time/date and battery appearance across at least one iPhone and one iPad simulator
+
+Deferred for now:
+
+- carrier name editing
+  - reason: low current need and weaker alignment with the screenshot-preparation focus
+  - revisit only if user demand or repeated real workflow pain becomes clear
+- optional auto-refresh
+  - reason: still useful, but not ahead of persistence, open-folder flow, or validation hardening
 
 ## Notes
 

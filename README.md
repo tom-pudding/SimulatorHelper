@@ -49,11 +49,17 @@ Known MVP limitations:
 - date visibility still depends on the simulator device family and the current app layout; iPhone usually shows only the time
 - signal and network indicators are intentionally left on simulator defaults to avoid model-specific regressions
 
-Next version candidates:
+Approved Version 1.1 priorities:
+1. persist last-used status bar values
+2. open save folder
+3. validation hardening for capability parsing and screenshot-visible status bar behavior
+
+Deferred for now:
 - carrier name editing
-- open save folder
-- persisted last-used status bar values
+  - reason: low current need and low contribution to screenshot-preparation efficiency
+  - reconsider if real user demand or repeated workflow pain is confirmed
 - optional auto-refresh
+  - reason: lower priority than persistence, open-folder flow, and validation hardening
 
 ## Requirements
 
