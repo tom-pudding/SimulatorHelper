@@ -20,9 +20,10 @@ Completed:
 - Phase 3 from `SIMULATOR_HELPER_TASKS_HISTORICAL.md`
 - Phase 4 from `SIMULATOR_HELPER_TASKS_HISTORICAL.md`
 - Phase 5 from `SIMULATOR_HELPER_TASKS_HISTORICAL.md`
+- Version 1.1 implementation pass for persisted settings, open-save-folder flow, and validation hardening
 
-Not started:
-- Version 1.1 backlog
+Not yet manually verified:
+- visible time/date and battery appearance across at least one iPhone and one iPad simulator
 
 Approved Version 1.1 direction:
 - do not implement carrier name editing in Version 1.1
@@ -40,6 +41,10 @@ Latest completed follow-up:
 - removed signal and network controls from the UI so simulator defaults remain untouched across device models
 - kept only battery level as the non-time override, with battery state derived automatically
 - added scripts to build `SimulatorHelper.app` and install it into `~/Applications` for normal Finder-based launching
+- persisted last-used status bar form values and restored them on launch
+- added an `Open Save Folder` action that prepares and opens the current destination folder
+- kept save-folder actions available even without a selected simulator while keeping screenshot capture gated by simulator selection
+- expanded tests for persisted settings, folder opening, parser drift, and view-model behavior
 
 ## What Phase 1 Added
 
@@ -112,6 +117,17 @@ Latest completed follow-up:
   - automatic battery state selection
   - forcing `Time Only` when an iPhone or no simulator is selected
 
+## Version 1.1 Implementation Notes
+
+- `AppSettingsStore` now persists status bar form values in addition to the screenshot folder
+- launch now restores the last-used status bar form values before runtime normalization
+- screenshot-folder actions are now split from screenshot capture:
+  - folder selection and folder opening remain available without a selected simulator
+  - screenshot capture still requires a selected booted simulator
+- folder opening prepares the target directory before attempting to open it
+- `StatusBarCapabilitiesService` parsing is hardened for double-quoted value lists and ellipsis-style numeric ranges
+- `swift test` currently passes with the expanded Version 1.1 coverage
+
 ## Build and Test
 
 Use:
@@ -133,27 +149,12 @@ In this Codex environment, build and test commands require execution outside the
 
 Next recommended step:
 
-Start Version 1.1 work with the updated priority order:
+Manually validate the implemented Version 1.1 behavior across at least one iPhone and one iPad simulator:
 
-1. persist last-used status bar form values
-2. add open-save-folder action
-3. harden validation before lower-priority feature expansion
-
-Recommended implementation breakdown:
-
-1. Persist last-used status bar values
-   - store the current status bar form values alongside the screenshot folder
-   - restore them on launch
-   - keep the existing iPhone/iPad normalization so unsupported `Date + Time` state still falls back safely
-   - verify with unit tests for save/load and selection-based normalization
-2. Open Save Folder
-   - add an explicit action in the screenshot section for opening the current destination folder
-   - keep the flow Finder-oriented rather than expanding into broader file management
-   - verify that the button opens the selected folder and respects the persisted destination
-3. Validation hardening
-   - add parser-focused tests for `simctl help status_bar` drift risk
-   - add coverage for persisted-value edge cases and screenshot workflow edge cases
-   - manually validate time/date and battery appearance across at least one iPhone and one iPad simulator
+1. confirm restored values behave correctly on relaunch
+2. confirm `Open Save Folder` opens the configured destination cleanly
+3. confirm visible time/date and battery results on current simulator screens
+4. update docs only if the manual findings differ from the current assumptions
 
 Deferred for now:
 

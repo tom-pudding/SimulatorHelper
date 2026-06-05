@@ -1,12 +1,15 @@
 import SwiftUI
 
 struct ScreenshotSectionView: View {
+    let hasSelectedSimulator: Bool
     let folderURL: URL
     let isChoosingFolder: Bool
+    let isOpeningFolder: Bool
     let isCapturingScreenshot: Bool
     let resultMessage: String?
     let resultIsError: Bool
     let onChooseFolder: () -> Void
+    let onOpenFolder: () -> Void
     let onCapture: () -> Void
 
     var body: some View {
@@ -24,11 +27,15 @@ struct ScreenshotSectionView: View {
                 HStack(spacing: 12) {
                     Button("Change Folder", action: onChooseFolder)
                         .buttonStyle(.bordered)
-                        .disabled(isChoosingFolder || isCapturingScreenshot)
+                        .disabled(isChoosingFolder || isOpeningFolder || isCapturingScreenshot)
+
+                    Button("Open Save Folder", action: onOpenFolder)
+                        .buttonStyle(.bordered)
+                        .disabled(isChoosingFolder || isOpeningFolder || isCapturingScreenshot)
 
                     Button("Capture Screenshot", action: onCapture)
                         .buttonStyle(.borderedProminent)
-                        .disabled(isChoosingFolder || isCapturingScreenshot)
+                        .disabled(!hasSelectedSimulator || isChoosingFolder || isOpeningFolder || isCapturingScreenshot)
                 }
 
                 if isChoosingFolder {
@@ -36,9 +43,19 @@ struct ScreenshotSectionView: View {
                         .progressViewStyle(.linear)
                 }
 
+                if isOpeningFolder {
+                    ProgressView("Opening screenshot folder…")
+                        .progressViewStyle(.linear)
+                }
+
                 if isCapturingScreenshot {
                     ProgressView("Capturing screenshot…")
                         .progressViewStyle(.linear)
+                }
+
+                if !hasSelectedSimulator {
+                    Label("Select a booted simulator to capture screenshots. Save-folder actions remain available.", systemImage: "info.circle")
+                        .foregroundStyle(.secondary)
                 }
 
                 if let resultMessage {

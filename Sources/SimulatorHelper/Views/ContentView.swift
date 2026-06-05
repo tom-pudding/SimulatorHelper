@@ -28,9 +28,7 @@ struct ContentView: View {
 
                 Section("Actions") {
                     Button {
-                        Task {
-                            await viewModel.loadSimulators()
-                        }
+                        Task { await viewModel.loadSimulators() }
                     } label: {
                         if viewModel.isLoadingSimulators {
                             Label("Refreshing Simulators…", systemImage: "hourglass")
@@ -41,9 +39,7 @@ struct ContentView: View {
                     .disabled(viewModel.isLoadingSimulators)
 
                     Button {
-                        Task {
-                            await viewModel.loadEnvironment()
-                        }
+                        Task { await viewModel.loadEnvironment() }
                     } label: {
                         if viewModel.isLoadingEnvironment {
                             Label("Refreshing Environment…", systemImage: "hourglass")
@@ -60,14 +56,17 @@ struct ContentView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     header
-                    EnvironmentBannerView(
-                        status: viewModel.environmentStatus,
-                        isLoading: viewModel.isLoadingEnvironment
-                    )
+
+                    if viewModel.isLoadingEnvironment || viewModel.environmentStatus.state != .ready {
+                        EnvironmentBannerView(
+                            status: viewModel.environmentStatus,
+                            isLoading: viewModel.isLoadingEnvironment
+                        )
+                    }
+
                     selectedSimulatorCard
                     statusBarSection
                     screenshotSection
-                    toolchainDetails
                 }
                 .padding(24)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -80,10 +79,8 @@ struct ContentView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Simulator Helper")
-                .font(.system(size: 32, weight: .semibold, design: .rounded))
-        }
+        Text("Simulator Helper")
+            .font(.system(size: 32, weight: .semibold, design: .rounded))
     }
 
     private var selectedSimulatorCard: some View {
@@ -94,8 +91,6 @@ struct ContentView: View {
                         .font(.headline)
 
                     detailLine(label: "Runtime", value: simulator.runtimeName)
-                    detailLine(label: "State", value: simulator.state)
-                    detailLine(label: "UDID", value: simulator.udid)
                 } else if viewModel.isLoadingSimulators {
                     ProgressView("Looking for booted simulators…")
                         .progressViewStyle(.linear)
@@ -117,7 +112,6 @@ struct ContentView: View {
         StatusBarFormView(
             configuration: $viewModel.statusBarConfiguration,
             capabilities: viewModel.statusBarCapabilities,
-            allowsDateAndTimeOverride: viewModel.allowsDateAndTimeOverride,
             hasSelectedSimulator: viewModel.selectedSimulator != nil,
             isLoadingCapabilities: viewModel.isLoadingStatusBarCapabilities,
             capabilitiesErrorMessage: viewModel.statusBarCapabilitiesErrorMessage,
@@ -125,70 +119,36 @@ struct ContentView: View {
             resultMessage: viewModel.statusBarResultMessage,
             resultIsError: viewModel.statusBarResultIsError,
             onReloadCapabilities: {
-                Task {
-                    await viewModel.loadStatusBarCapabilities()
-                }
+                Task { await viewModel.loadStatusBarCapabilities() }
             },
             onApply: {
-                Task {
-                    await viewModel.applyStatusBarConfiguration()
-                }
+                Task { await viewModel.applyStatusBarConfiguration() }
             },
             onClear: {
-                Task {
-                    await viewModel.clearStatusBarConfiguration()
-                }
+                Task { await viewModel.clearStatusBarConfiguration() }
             }
         )
     }
 
     private var screenshotSection: some View {
         ScreenshotSectionView(
+            hasSelectedSimulator: viewModel.selectedSimulator != nil,
             folderURL: viewModel.screenshotFolderURL,
             isChoosingFolder: viewModel.isChoosingScreenshotFolder,
+            isOpeningFolder: viewModel.isOpeningScreenshotFolder,
             isCapturingScreenshot: viewModel.isCapturingScreenshot,
             resultMessage: viewModel.screenshotResultMessage,
             resultIsError: viewModel.screenshotResultIsError,
             onChooseFolder: {
-                Task {
-                    await viewModel.chooseScreenshotFolder()
-                }
+                Task { await viewModel.chooseScreenshotFolder() }
+            },
+            onOpenFolder: {
+                viewModel.openScreenshotFolder()
             },
             onCapture: {
-                Task {
-                    await viewModel.captureScreenshot()
-                }
+                Task { await viewModel.captureScreenshot() }
             }
         )
-        .disabled(viewModel.selectedSimulator == nil || viewModel.isLoadingSimulators)
-    }
-
-    private var toolchainDetails: some View {
-        GroupBox {
-            Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 12) {
-                detailRow(label: "Xcode Version", value: viewModel.environmentStatus.xcodeVersion ?? "Unknown")
-                detailRow(label: "Build", value: viewModel.environmentStatus.xcodeBuild ?? "Unknown")
-                detailRow(label: "Developer Directory", value: viewModel.environmentStatus.developerDirectory ?? "Unknown")
-                detailRow(label: "Simulator Tool Path", value: viewModel.environmentStatus.simctlPath ?? "Unknown")
-                detailRow(
-                    label: "Status Bar Support",
-                    value: viewModel.environmentStatus.statusBarSupportAvailable ? "Available" : "Unavailable"
-                )
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        } label: {
-            Label("Toolchain Details", systemImage: "wrench.and.screwdriver")
-        }
-    }
-
-    private func detailRow(label: String, value: String) -> some View {
-        GridRow {
-            Text(label)
-                .foregroundStyle(.secondary)
-            Text(value)
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
     }
 
     private func detailLine(label: String, value: String) -> some View {

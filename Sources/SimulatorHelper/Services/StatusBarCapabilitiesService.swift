@@ -93,12 +93,17 @@ struct StatusBarCapabilitiesService: Sendable {
     }
 
     private func extractQuotedValues(from line: String) -> [String] {
-        let matches = line.matches(of: /'([^']+)'/)
-        return matches.map { String($0.output.1) }
+        let singleQuotedMatches = line.matches(of: /'([^']+)'/)
+        if !singleQuotedMatches.isEmpty {
+            return singleQuotedMatches.map { String($0.output.1) }
+        }
+
+        let doubleQuotedMatches = line.matches(of: /"([^"]+)"/)
+        return doubleQuotedMatches.map { String($0.output.1) }
     }
 
     private func extractRange(from line: String) -> ClosedRange<Int>? {
-        guard let match = line.firstMatch(of: /(\d+)-(\d+)/),
+        guard let match = line.firstMatch(of: /(\d+)(?:-|\.\.\.)(\d+)/),
               let lowerBound = Int(match.output.1),
               let upperBound = Int(match.output.2) else {
             return nil
