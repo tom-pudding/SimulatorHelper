@@ -1,8 +1,18 @@
 # Simulator Helper
 
-**Set the iOS Simulator status bar time and battery, then capture a screenshot — all without touching the Terminal.**
+<p align="center">
+  <img src="docs/icon.png" width="128" alt="Simulator Helper icon">
+</p>
 
-Designed for iOS developers who prepare App Store screenshots and want a clean, consistent status bar every time.
+<p align="center">
+  <strong>Set the iOS Simulator status bar to 9:41 and capture App Store screenshots faster.</strong>
+</p>
+
+<p align="center">
+  No Terminal. No typing <code>xcrun simctl</code> every time. Just set and shoot.
+</p>
+
+---
 
 ![Simulator Helper](docs/screenshot.png)
 
