@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  No Terminal. No typing <code>xcrun simctl</code> every time. Just set and shoot.
+  No more typing <code>xcrun simctl status_bar</code> every time. Just set and shoot.
 </p>
 
 ---
