@@ -37,6 +37,12 @@ fi
 cp "$EXECUTABLE_PATH" "$MACOS_DIR/$APP_NAME"
 chmod +x "$MACOS_DIR/$APP_NAME"
 
+# App icon
+ICON_SRC="$ROOT_DIR/scripts/AppIcon.icns"
+if [[ -f "$ICON_SRC" ]]; then
+  cp "$ICON_SRC" "$RESOURCES_DIR/AppIcon.icns"
+fi
+
 cat > "$CONTENTS_DIR/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -64,6 +70,8 @@ cat > "$CONTENTS_DIR/Info.plist" <<EOF
   <string>15.0</string>
   <key>NSHighResolutionCapable</key>
   <true/>
+  <key>CFBundleIconFile</key>
+  <string>AppIcon</string>
 </dict>
 </plist>
 EOF
