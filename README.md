@@ -1,28 +1,46 @@
 # Simulator Helper
 
-A native macOS utility that lets you set the iOS Simulator status bar (time and battery) and capture screenshots — no Terminal required.
+**Set the iOS Simulator status bar time and battery, then capture a screenshot — all without touching the Terminal.**
+
+Designed for iOS developers who prepare App Store screenshots and want a clean, consistent status bar every time.
+
+![Simulator Helper](docs/screenshot.png)
 
 ---
 
 ## Download
 
-**[→ Download the latest release](https://github.com/tom-pudding/SimulatorHelper/releases/latest)**
+**[→ Download SimulatorHelper-1.0.0.zip](https://github.com/tom-pudding/SimulatorHelper/releases/latest)**
 
-Unzip and move `SimulatorHelper.app` to your Applications folder. Xcode must be installed (the app uses `xcrun simctl` internally), but Xcode does not need to be open.
+1. Unzip and move `SimulatorHelper.app` to your Applications folder
+2. Launch the app — Xcode must be installed, but does not need to be open
 
 **Requirements:** macOS 15.0+, Xcode installed
 
 ---
 
-## What it does
+## What you can do
 
-When preparing App Store screenshots you need a clean, consistent status bar — correct time, full battery. Doing this by hand with `xcrun simctl status_bar` every time is tedious. Simulator Helper gives you a simple GUI to set it once and capture.
+| Feature | Details |
+|--------|---------|
+| **Set the time** | Type any time (e.g. `9:41` or `1041`) and click Apply Settings |
+| **Set battery level** | Adjust 0–100 % with the stepper |
+| **Capture a screenshot** | Saves a PNG to a folder of your choice |
+| **Works with multiple simulators** | All booted iPhone and iPad simulators appear in the sidebar |
+| **Remembers your settings** | Last-used time and battery level are restored on next launch |
 
-- Detects all booted iPhone and iPad simulators automatically
-- Sets the status bar time to any value (e.g. 9:41)
-- Sets battery level (0–100 %)
-- Captures a screenshot to a folder of your choice
-- Persists your last-used settings between launches
+The status bar changes take effect on the running simulator immediately.  
+Hit **Clear Overrides** to restore the simulator's real status bar.
+
+---
+
+## How to use
+
+1. Boot an iPhone or iPad simulator in Simulator.app
+2. Open Simulator Helper — the simulator appears in the sidebar automatically
+3. Enter a time and adjust battery level
+4. Click **Apply Settings**
+5. Click **Capture Screenshot**
 
 ---
 
@@ -31,55 +49,47 @@ When preparing App Store screenshots you need a clean, consistent status bar —
 ```bash
 git clone https://github.com/tom-pudding/SimulatorHelper.git
 cd SimulatorHelper
-./scripts/install_app.sh
-```
-
-This builds a release binary, assembles the `.app` bundle, and copies it to `~/Applications/SimulatorHelper.app`.
-
-```bash
-# Run tests
-swift test
+./scripts/install_app.sh   # builds and installs to ~/Applications
+swift test                  # run the test suite
 ```
 
 ---
 
 ## iOS 26 compatibility notes
 
-Developing this app against the iOS 26 beta exposed two `simctl` bugs that required creative workarounds. They are documented here in case you hit them too.
+Developing against the iOS 26 beta uncovered two `simctl status_bar` bugs.
 
-### Bug 1 — Date overrides are completely broken
+### Bug 1 — Date override is broken
 
-`simctl status_bar override --time` accepts an ISO 8601 date-time string on older iOS versions to also set the *date* shown in the iPad status bar. On iOS 26 every date-carrying format is rejected:
+On iOS 26, every ISO 8601 date-time string passed to `--time` is rejected:
 
 ```
 Invalid, non-ISO date/time string
 ```
 
-Tested and confirmed broken: `2026-06-01T09:41:00+09:00`, `2026-06-01T09:41:00Z`, `2026-06-01T09:41:00`, and every variant with or without milliseconds, timezone offset, or seconds. No workaround was found.
+No workaround was found. Date override is not available on iOS 26 simulators; only time-of-day can be set.
 
-**Status:** date override is not exposed in the UI on iOS 26 simulators.
+### Bug 2 — Times ending in :00 and the midnight hour are rejected
 
-### Bug 2 — Times ending in :00 and times in the midnight hour are rejected
-
-Any time whose *minute value is zero* (e.g. `11:00`, `9:00`, `0:00`) or whose *hour value is zero* (e.g. `0:30`) is rejected with the same error, even though these are perfectly valid time strings.
-
-Every alternative format was tested — `11:00:00`, `11:00 AM`, `1100`, full-width characters — all rejected.
+`11:00`, `9:00`, `0:30` — any time where the minute value is zero, or the hour value is zero, fails with the same error. Every alternative format (`11:00:00`, `11:00 AM`, `1100`, …) was tested and rejected.
 
 **Workaround: minute overflow**
 
-`simctl` accepts minute values ≥ 60 and normalises them on the device. Sending `10:60` causes the simulator to display `11:00`.
+`simctl` accepts minute values ≥ 60 and normalises them on the device.  
+Sending `10:60` causes the simulator to display `11:00`.
 
 ```
-Display  →  Sent to simctl
- 11:00   →  10:60
- 12:00   →  11:60
-  1:00   →  23:120
-  0:00   →  22:120
-  0:30   →  22:150
-  9:41   →  9:41   (unchanged)
+You type  →  Sent to simctl  →  Simulator shows
+  11:00         10:60               11:00
+  12:00         11:60               12:00
+   1:00         23:120               1:00
+   0:00         22:120               0:00
+   0:30         22:150               0:30
+   9:41          9:41                9:41
 ```
 
-The conversion lives in `StatusBarConfiguration.simctlTimeArgument`. The UI always shows the human-readable form; only the value sent to `simctl` is rewritten. If a future `simctl` update also rejects overflow minutes, the fix is to remove `simctlTimeArgument` and send the display string directly.
+This is handled automatically inside `StatusBarConfiguration.simctlTimeArgument`.  
+The UI always shows the time you typed; the rewrite is invisible.
 
 ---
 
@@ -87,17 +97,16 @@ The conversion lives in `StatusBarConfiguration.simctlTimeArgument`. The UI alwa
 
 ```
 Sources/SimulatorHelper/
-  App/             entry point
-  Models/          data structures
-  Services/        simctl wrappers, screenshot, settings
-  ViewModels/      AppViewModel (@Observable)
-  Views/           SwiftUI views
-
+  App/          entry point
+  Models/       data structures
+  Services/     simctl wrappers, screenshot, settings
+  ViewModels/   AppViewModel (@Observable)
+  Views/        SwiftUI views
 Tests/SimulatorHelperTests/
 scripts/
   build_app.sh        assemble .app bundle
   install_app.sh      build + install to ~/Applications
-  generate_icon.swift regenerate AppIcon.icns
+  generate_icon.swift regenerate AppIcon.icns from scratch
 ```
 
 ---
