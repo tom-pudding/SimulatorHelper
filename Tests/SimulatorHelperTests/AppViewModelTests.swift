@@ -5,44 +5,77 @@ import Testing
 @MainActor
 struct AppViewModelTests {
     @Test
-    func selectingIPhoneForcesTimeOnlyMode() {
-        let viewModel = AppViewModel()
-        viewModel.simulators = [sampleIPadSimulator, sampleIPhoneSimulator]
-        viewModel.selectedSimulatorID = sampleIPadSimulator.id
-        viewModel.statusBarConfiguration.timeOverrideMode = .dateAndTime
+    func restoresPersistedStatusBarConfigurationOnInit() {
+        let store = makeAppSettingsStore(suiteName: "SimulatorHelper.AppViewModelTests.restore")
+        let savedConfiguration = StatusBarConfiguration(
+            timeOverride: Calendar(identifier: .gregorian).date(
+                from: DateComponents(year: 2026, month: 6, day: 2, hour: 11, minute: 15, second: 0)
+            )!,
+            batteryLevel: 77
+        )
+        store.saveStatusBarConfiguration(savedConfiguration)
 
-        viewModel.selectedSimulatorID = sampleIPhoneSimulator.id
+        let viewModel = AppViewModel(appSettingsStore: store)
 
-        #expect(viewModel.selectedSimulatorProductFamily == .iPhone)
-        #expect(viewModel.allowsDateAndTimeOverride == false)
-        #expect(viewModel.statusBarConfiguration.timeOverrideMode == .timeOnly)
+        #expect(viewModel.statusBarConfiguration == savedConfiguration)
     }
 
     @Test
-    func clearingSelectionForcesTimeOnlyMode() {
-        let viewModel = AppViewModel()
-        viewModel.simulators = [sampleIPadSimulator]
-        viewModel.selectedSimulatorID = sampleIPadSimulator.id
-        viewModel.statusBarConfiguration.timeOverrideMode = .dateAndTime
+    func editingStatusBarConfigurationPersistsChanges() {
+        let store = makeAppSettingsStore(suiteName: "SimulatorHelper.AppViewModelTests.persistEdits")
+        let viewModel = AppViewModel(appSettingsStore: store)
+        let updatedConfiguration = StatusBarConfiguration(
+            timeOverride: Calendar(identifier: .gregorian).date(
+                from: DateComponents(year: 2026, month: 6, day: 2, hour: 13, minute: 5, second: 0)
+            )!,
+            batteryLevel: 64
+        )
 
-        viewModel.selectedSimulatorID = nil
+        viewModel.statusBarConfiguration = updatedConfiguration
 
-        #expect(viewModel.selectedSimulator == nil)
-        #expect(viewModel.allowsDateAndTimeOverride == false)
-        #expect(viewModel.statusBarConfiguration.timeOverrideMode == .timeOnly)
+        #expect(store.loadStatusBarConfiguration() == updatedConfiguration)
     }
 
     @Test
-    func selectingIPadAllowsDateAndTimeMode() {
-        let viewModel = AppViewModel()
-        viewModel.simulators = [sampleIPadSimulator]
-        viewModel.selectedSimulatorID = sampleIPadSimulator.id
-        viewModel.statusBarConfiguration.timeOverrideMode = .dateAndTime
+    func openingScreenshotFolderReportsSuccess() {
+        let folderURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let store = makeAppSettingsStore(suiteName: "SimulatorHelper.AppViewModelTests.openFolderSuccess")
+        store.saveScreenshotFolder(folderURL)
+        let viewModel = AppViewModel(
+            appSettingsStore: store,
+            folderOpeningService: FolderOpeningService(openHandler: { _ in true })
+        )
 
-        #expect(viewModel.selectedSimulatorProductFamily == .iPad)
-        #expect(viewModel.allowsDateAndTimeOverride)
-        #expect(viewModel.statusBarConfiguration.timeOverrideMode == .dateAndTime)
+        viewModel.openScreenshotFolder()
+
+        #expect(viewModel.screenshotResultIsError == false)
+        #expect(viewModel.screenshotResultMessage == "Opened screenshot folder at \(folderURL.path).")
     }
+
+    @Test
+    func openingScreenshotFolderReportsFailure() {
+        let folderURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let store = makeAppSettingsStore(suiteName: "SimulatorHelper.AppViewModelTests.openFolderFailure")
+        store.saveScreenshotFolder(folderURL)
+        let viewModel = AppViewModel(
+            appSettingsStore: store,
+            folderOpeningService: FolderOpeningService(openHandler: { _ in false })
+        )
+
+        viewModel.openScreenshotFolder()
+
+        #expect(viewModel.screenshotResultIsError)
+        #expect(viewModel.screenshotResultMessage == "Failed to open the screenshot folder at \(folderURL.path).")
+    }
+}
+
+@MainActor
+private func makeAppSettingsStore(suiteName: String) -> AppSettingsStore {
+    let userDefaults = UserDefaults(suiteName: suiteName)!
+    userDefaults.removePersistentDomain(forName: suiteName)
+    return AppSettingsStore(userDefaults: userDefaults)
 }
 
 private let sampleIPhoneSimulator = SimulatorDescriptor(

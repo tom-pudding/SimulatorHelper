@@ -38,4 +38,23 @@ struct StatusBarCapabilitiesServiceTests {
         #expect(capabilities.batteryLevelRange == 0...100)
         #expect(capabilities.supportsMVP)
     }
+
+    @Test
+    func parsesDoubleQuotedValuesAndEllipsisRanges() throws {
+        let helpOutput = """
+        --dataNetwork <dataNetworkType>
+             If specified must be one of "wifi", "lte", or "5g".
+        --batteryLevel <int>
+             If specified must be 0...100.
+        --batteryState <state>
+             If specified must be one of "charging", "charged", or "discharging".
+        --time <string>
+        """
+
+        let capabilities = try StatusBarCapabilitiesService().parseCapabilities(from: helpOutput)
+
+        #expect(capabilities.supportedDataNetworks == ["wifi", "lte", "5g"])
+        #expect(capabilities.supportedBatteryStates == ["charging", "charged", "discharging"])
+        #expect(capabilities.batteryLevelRange == 0...100)
+    }
 }

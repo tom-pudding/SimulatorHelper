@@ -1,11 +1,8 @@
 import SwiftUI
 
 struct StatusBarFormView: View {
-    private let modeControlWidth: CGFloat = 320
-
     @Binding var configuration: StatusBarConfiguration
     let capabilities: StatusBarCapabilities
-    let allowsDateAndTimeOverride: Bool
     let hasSelectedSimulator: Bool
     let isLoadingCapabilities: Bool
     let capabilitiesErrorMessage: String?
@@ -16,6 +13,35 @@ struct StatusBarFormView: View {
     let onApply: () -> Void
     let onClear: () -> Void
 
+    @State private var timeText: String
+
+    init(
+        configuration: Binding<StatusBarConfiguration>,
+        capabilities: StatusBarCapabilities,
+        hasSelectedSimulator: Bool,
+        isLoadingCapabilities: Bool,
+        capabilitiesErrorMessage: String?,
+        isPerformingAction: Bool,
+        resultMessage: String?,
+        resultIsError: Bool,
+        onReloadCapabilities: @escaping () -> Void,
+        onApply: @escaping () -> Void,
+        onClear: @escaping () -> Void
+    ) {
+        self._configuration = configuration
+        self.capabilities = capabilities
+        self.hasSelectedSimulator = hasSelectedSimulator
+        self.isLoadingCapabilities = isLoadingCapabilities
+        self.capabilitiesErrorMessage = capabilitiesErrorMessage
+        self.isPerformingAction = isPerformingAction
+        self.resultMessage = resultMessage
+        self.resultIsError = resultIsError
+        self.onReloadCapabilities = onReloadCapabilities
+        self.onApply = onApply
+        self.onClear = onClear
+        self._timeText = State(initialValue: "")
+    }
+
     var body: some View {
         GroupBox {
             VStack(alignment: .leading, spacing: 18) {
@@ -25,7 +51,6 @@ struct StatusBarFormView: View {
                 } else if let capabilitiesErrorMessage {
                     statusMessage(message: capabilitiesErrorMessage, symbolName: "exclamationmark.triangle")
                         .foregroundStyle(.orange)
-
                     Button("Retry Capability Detection", action: onReloadCapabilities)
                 } else if !capabilities.supportsMVP {
                     statusMessage(
@@ -39,7 +64,6 @@ struct StatusBarFormView: View {
                             label("Time")
                             timeOverrideControls
                         }
-
                         GridRow {
                             label("Battery")
                             batteryLevelControls
@@ -47,8 +71,12 @@ struct StatusBarFormView: View {
                     }
 
                     HStack(spacing: 12) {
-                        Button("Apply Settings", action: onApply)
-                            .buttonStyle(.borderedProminent)
+                        Button("Apply Settings") {
+                            commitTimeText()
+                            onApply()
+                        }
+                        .buttonStyle(.borderedProminent)
+
                         Button("Clear Overrides", action: onClear)
                             .buttonStyle(.bordered)
                     }
@@ -78,48 +106,78 @@ struct StatusBarFormView: View {
     }
 
     private var timeOverrideControls: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Picker("", selection: $configuration.timeOverrideMode) {
-                ForEach(StatusBarConfiguration.TimeOverrideMode.allCases) { option in
-                    Text(option.title)
-                        .tag(option)
-                        .disabled(option == .dateAndTime && !allowsDateAndTimeOverride)
-                }
+        HStack(spacing: 12) {
+            TextField("", text: $timeText)
+                .frame(width: 72)
+                .textFieldStyle(.roundedBorder)
+                .onSubmit { commitTimeText() }
+
+            Button("Use 9:41") {
+                configuration.resetTimeToDefault()
+                timeText = "9:41"
             }
-            .labelsHidden()
-            .pickerStyle(.segmented)
-            .frame(width: modeControlWidth, alignment: .leading)
-
-            HStack(alignment: .top, spacing: 12) {
-                DatePicker(
-                    "Date",
-                    selection: $configuration.dateAndTimeOverride,
-                    displayedComponents: [.date]
-                )
-                .disabled(configuration.timeOverrideMode == .timeOnly)
-                .opacity(configuration.timeOverrideMode == .timeOnly ? 0.55 : 1)
-
-                DatePicker(
-                    "Time",
-                    selection: $configuration.dateAndTimeOverride,
-                    displayedComponents: [.hourAndMinute]
-                )
-
-                Button("Use 9:41") {
-                    configuration.resetTimeToDefault()
-                }
-                .buttonStyle(.bordered)
-                .disabled(isPerformingAction)
-            }
+            .buttonStyle(.bordered)
+            .disabled(isPerformingAction)
+        }
+        .onChange(of: configuration.timeOverride) { _, _ in
+            timeText = configuration.resolvedTimeString
         }
     }
 
     private var batteryLevelControls: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Stepper(value: $configuration.batteryLevel, in: capabilities.batteryLevelRange) {
-                Text("\(configuration.batteryLevel)%")
-                    .frame(maxWidth: .infinity, alignment: .leading)
+        Stepper(value: $configuration.batteryLevel, in: capabilities.batteryLevelRange) {
+            Text("\(configuration.batteryLevel)%")
+        }
+        .fixedSize()
+    }
+
+    private func commitTimeText() {
+        if let (hour, minute) = parseTime(timeText) {
+            var components = Calendar.current.dateComponents([.year, .month, .day], from: configuration.timeOverride)
+            components.hour = hour
+            components.minute = minute
+            components.second = 0
+            if let date = Calendar.current.date(from: components) {
+                configuration.timeOverride = date
             }
+            timeText = String(format: "%d:%02d", hour, minute)
+        } else {
+            timeText = ""
+        }
+    }
+
+    // Accepts "9:41", "09:41" (with colon) or "941", "0941" (digits only).
+    // 3 digits → first digit is hour, last two are minutes.
+    // 4 digits → first two digits are hour, last two are minutes.
+    private func parseTime(_ input: String) -> (hour: Int, minute: Int)? {
+        let trimmed = input.trimmingCharacters(in: .whitespaces)
+
+        if trimmed.contains(":") {
+            let parts = trimmed.split(separator: ":", maxSplits: 1)
+            guard parts.count == 2,
+                  let hour = Int(parts[0]),
+                  let minute = Int(String(parts[1])),
+                  (0...23).contains(hour),
+                  (0...59).contains(minute) else { return nil }
+            return (hour, minute)
+        }
+
+        let digits = trimmed.filter { $0.isNumber }
+        switch digits.count {
+        case 3:
+            guard let hour = Int(String(digits.prefix(1))),
+                  let minute = Int(String(digits.suffix(2))),
+                  (0...23).contains(hour),
+                  (0...59).contains(minute) else { return nil }
+            return (hour, minute)
+        case 4:
+            guard let hour = Int(String(digits.prefix(2))),
+                  let minute = Int(String(digits.suffix(2))),
+                  (0...23).contains(hour),
+                  (0...59).contains(minute) else { return nil }
+            return (hour, minute)
+        default:
+            return nil
         }
     }
 

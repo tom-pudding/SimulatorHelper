@@ -52,7 +52,7 @@ struct StatusBarCommandService: Sendable {
 
         return [
             "simctl", "status_bar", simulatorID, "override",
-            "--time", configuration.resolvedTimeOverrideValue,
+            "--time", configuration.simctlTimeArgument,
             "--batteryState", configuration.resolvedBatteryState.rawValue,
             "--batteryLevel", String(configuration.batteryLevel),
         ]

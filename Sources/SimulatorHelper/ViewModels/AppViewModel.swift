@@ -7,22 +7,23 @@ final class AppViewModel {
     var environmentStatus = EnvironmentStatus.empty
     var isLoadingEnvironment = false
     var simulators: [SimulatorDescriptor] = []
-    var selectedSimulatorID: SimulatorDescriptor.ID? {
-        didSet {
-            synchronizeStatusBarConfigurationForSelection()
-        }
-    }
+    var selectedSimulatorID: SimulatorDescriptor.ID?
     var isLoadingSimulators = false
     var simulatorErrorMessage: String?
     var statusBarCapabilities = StatusBarCapabilities.empty
     var isLoadingStatusBarCapabilities = false
     var statusBarCapabilitiesErrorMessage: String?
-    var statusBarConfiguration = StatusBarConfiguration.defaultMVP
+    var statusBarConfiguration: StatusBarConfiguration {
+        didSet {
+            appSettingsStore.saveStatusBarConfiguration(statusBarConfiguration)
+        }
+    }
     var isPerformingStatusBarAction = false
     var statusBarResultMessage: String?
     var statusBarResultIsError = false
     var screenshotFolderURL: URL
     var isChoosingScreenshotFolder = false
+    var isOpeningScreenshotFolder = false
     var isCapturingScreenshot = false
     var screenshotResultMessage: String?
     var screenshotResultIsError = false
@@ -33,6 +34,7 @@ final class AppViewModel {
     private let statusBarCommandService: StatusBarCommandService
     private let appSettingsStore: AppSettingsStore
     private let folderSelectionService: FolderSelectionService
+    private let folderOpeningService: FolderOpeningService
     private let screenshotService: ScreenshotService
 
     init(
@@ -42,9 +44,11 @@ final class AppViewModel {
         statusBarCommandService: StatusBarCommandService = StatusBarCommandService(),
         appSettingsStore: AppSettingsStore = AppSettingsStore(),
         folderSelectionService: FolderSelectionService = FolderSelectionService(),
+        folderOpeningService: FolderOpeningService = FolderOpeningService(),
         screenshotService: ScreenshotService = ScreenshotService()
     ) {
         let screenshotFolderURL = appSettingsStore.loadScreenshotFolder()
+        let statusBarConfiguration = appSettingsStore.loadStatusBarConfiguration()
 
         self.environmentService = environmentService
         self.simulatorInventoryService = simulatorInventoryService
@@ -52,8 +56,10 @@ final class AppViewModel {
         self.statusBarCommandService = statusBarCommandService
         self.appSettingsStore = appSettingsStore
         self.folderSelectionService = folderSelectionService
+        self.folderOpeningService = folderOpeningService
         self.screenshotService = screenshotService
         self.screenshotFolderURL = screenshotFolderURL
+        self.statusBarConfiguration = statusBarConfiguration
     }
 
     func loadInitialData() async {
@@ -81,6 +87,8 @@ final class AppViewModel {
         environmentStatus = await environmentService.loadStatus()
         statusBarCapabilities = .empty
         statusBarCapabilitiesErrorMessage = nil
+        statusBarResultMessage = nil
+        screenshotResultMessage = nil
         await loadStatusBarCapabilitiesIfNeeded()
     }
 
@@ -152,6 +160,7 @@ final class AppViewModel {
         }
 
         isPerformingStatusBarAction = true
+        statusBarResultMessage = nil
         defer { isPerformingStatusBarAction = false }
 
         do {
@@ -178,6 +187,7 @@ final class AppViewModel {
         }
 
         isPerformingStatusBarAction = true
+        statusBarResultMessage = nil
         defer { isPerformingStatusBarAction = false }
 
         do {
@@ -203,6 +213,24 @@ final class AppViewModel {
             appSettingsStore.saveScreenshotFolder(folder)
             screenshotResultMessage = "Updated screenshot folder to \(folder.path)."
             screenshotResultIsError = false
+        }
+    }
+
+    func openScreenshotFolder() {
+        guard !isOpeningScreenshotFolder else {
+            return
+        }
+
+        isOpeningScreenshotFolder = true
+        defer { isOpeningScreenshotFolder = false }
+
+        do {
+            try folderOpeningService.openFolder(at: screenshotFolderURL)
+            screenshotResultMessage = "Opened screenshot folder at \(screenshotFolderURL.path)."
+            screenshotResultIsError = false
+        } catch {
+            screenshotResultMessage = error.localizedDescription
+            screenshotResultIsError = true
         }
     }
 
@@ -239,27 +267,11 @@ final class AppViewModel {
         return simulators.first(where: { $0.id == selectedSimulatorID })
     }
 
-    var selectedSimulatorProductFamily: SimulatorDescriptor.ProductFamily? {
-        selectedSimulator?.productFamily
-    }
-
-    var allowsDateAndTimeOverride: Bool {
-        selectedSimulatorProductFamily == .iPad
-    }
-
     private func synchronizeSelection() {
         if let selectedSimulatorID, simulators.contains(where: { $0.id == selectedSimulatorID }) {
-            synchronizeStatusBarConfigurationForSelection()
             return
         }
 
         selectedSimulatorID = simulators.first?.id
-    }
-
-    private func synchronizeStatusBarConfigurationForSelection() {
-        guard allowsDateAndTimeOverride else {
-            statusBarConfiguration.timeOverrideMode = .timeOnly
-            return
-        }
     }
 }

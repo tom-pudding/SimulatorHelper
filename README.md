@@ -19,6 +19,8 @@ Those historical planning docs are preserved for context and may not match the c
 ## Current Status
 
 MVP implementation is complete.
+Version 1.1 code changes are implemented.
+Manual simulator validation of visible status bar output is still recommended.
 
 Implemented so far:
 - macOS SwiftUI app scaffold
@@ -37,22 +39,24 @@ Implemented so far:
   - battery level
 - iPhone-aware UI that keeps `Date + Time` unavailable unless an iPad simulator is selected
 - screenshot folder persistence with a default Desktop destination
+- persisted last-used status bar values
+- open-save-folder action that prepares and opens the current destination folder
 - screenshot filename generation and capture command wiring
-- unit tests for environment, inventory, status bar, screenshot, and settings services
+- expanded unit tests for environment, inventory, status bar, screenshot, settings, folder-opening, and view-model flows
 
-Known MVP limitations:
+Known current limitations:
 - detects booted simulators only
 - single simulator selection only
 - no carrier name editing
-- no open-save-folder action yet
 - no presets or batch capture yet
 - date visibility still depends on the simulator device family and the current app layout; iPhone usually shows only the time
 - signal and network indicators are intentionally left on simulator defaults to avoid model-specific regressions
+- manual iPhone/iPad visual verification is still recommended for time/date and battery appearance
 
-Approved Version 1.1 priorities:
+Version 1.1 implemented in code:
 1. persist last-used status bar values
 2. open save folder
-3. validation hardening for capability parsing and screenshot-visible status bar behavior
+3. validation hardening for capability parsing and screenshot workflow edge cases
 
 Deferred for now:
 - carrier name editing
